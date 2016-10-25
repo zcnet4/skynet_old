@@ -108,13 +108,13 @@ EXPORTS
 	skynet_harbor_start
 	skynet_harbor_exit
 
-	skynet_handle_register
-	skynet_handle_retire
-	skynet_handle_grab
-	skynet_handle_retireall
-	skynet_handle_findname
-	skynet_handle_namehandle
-	skynet_handle_init
+	;skynet_handle_register
+	;skynet_handle_retire
+	;skynet_handle_grab
+	;skynet_handle_retireall
+	;skynet_handle_findname
+	;skynet_handle_namehandle
+	;skynet_handle_init
 
 	skynet_getenv
 	skynet_setenv
@@ -132,13 +132,4 @@ EXPORTS
 	skynet_callback
 	skynet_current_handle
 
-	skynet_error
-	skynet_command
-	skynet_queryname
-	skynet_send
-	skynet_sendname
-	skynet_isremote
-	skynet_callback
-	skynet_current_handle
-	
 	luaopen_skynet_core

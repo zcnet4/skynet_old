@@ -197,6 +197,38 @@
     },
 	{
 	  # 目标工程名
+      'target_name': 'harbor2',
+      'type': 'loadable_module',
+	  # 目标工程依赖工程
+      'dependencies': [
+		'3rd/3rd.gyp:lua',
+		'skynet',
+      ],
+	  #目标工程C++ include目录
+      'include_dirs': [
+		'.'
+      ],
+	  #目标工程源代码路径
+      'sources': [
+		"../service-src/service_harbor2.c",
+	  ],
+	  'conditions': [
+        ['OS=="win"', {
+          'defines': [
+            'NOUSE_JEMALLOC',
+          ],
+		  'sources': [
+			"../service-src/harbor2.def",
+		  ],
+        }, { # OS != "win",
+          'defines': [
+            
+          ],
+        }]
+      ],
+    },
+	{
+	  # 目标工程名
       'target_name': 'gate',
       'type': 'loadable_module',
 	  # 目标工程依赖工程

@@ -53,6 +53,7 @@
 		'snlua',
 		'logger',
 		'harbor',
+		'harbor2',
 		'memory',
 		'socketdriver',
       ],

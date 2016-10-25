@@ -1131,6 +1131,11 @@ report_connect(struct socket_server *ss, struct socket *s, struct socket_message
 		if (getpeername(s->fd, &u.s, &slen) == 0) {
 			void * sin_addr = (u.s.sa_family == AF_INET) ? (void*)&u.v4.sin_addr : (void *)&u.v6.sin6_addr;
 			if (inet_ntop(u.s.sa_family, sin_addr, ss->buffer, sizeof(ss->buffer))) {
+        //Modify Begin
+        //by ZC. 2016-9-20 10:25.
+        int sin_port = ntohs((u.s.sa_family == AF_INET) ? u.v4.sin_port : u.v6.sin6_port);
+        snprintf(ss->buffer + strlen(ss->buffer), sizeof(ss->buffer), ":%d", sin_port);
+        //Modify End
 				result->data = ss->buffer;
 				return SOCKET_OPEN;
 			}

@@ -76,8 +76,14 @@ _init_env(lua_State *L) {
 #ifdef _MSC_VER
       if (!strcmp(key, "cpath") || !strcmp(key, "lua_cpath")) {
         const char* p = value;
+#ifdef _DEBUG
+        // 将Window版本下Debug与Release目录统一起来，方便conf配置。by ZC. 2016-9-22
+        const char* src = "Release/?.so";
+        const char* dst = "Debug/?.dll";
+#else
         const char* src = "?.so";
         const char* dst = "?.dll";
+#endif // _DEBUG
         //
         int src_len = strlen(src);
         int dst_len = strlen(dst);
@@ -129,6 +135,7 @@ main(int argc, char *argv[]) {
 	const char * config_file = NULL ;
 	if (argc > 1) {
 		config_file = argv[1];
+		fprintf(stdout, "skynet config:%s\n", config_file);
 	} else {
 		fprintf(stderr, "Need a config file. Please read skynet wiki : https://github.com/cloudwu/skynet/wiki/Config\n"
 			"usage: skynet configfilename\n");
