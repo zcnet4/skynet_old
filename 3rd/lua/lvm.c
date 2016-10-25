@@ -65,6 +65,9 @@
 
 /* Add by skynet */
 lua_State * skynet_sig_L = NULL;
+void skynet_lua_signal(lua_State * L) {
+  skynet_sig_L = L;
+}
 
 LUA_API void
 lua_checksig_(lua_State *L) {

@@ -764,4 +764,7 @@
 
 
 #endif
+#ifdef _MSC_VER
+#include <unistd.h>
+#endif
 
