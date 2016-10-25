@@ -82,6 +82,7 @@
               'VCLinkerTool': {
                 'AdditionalDependencies': [
 					'pthreadVCE2.lib',
+					'Ws2_32.lib',
 				],
 				'AdditionalLibraryDirectories':[
 					'3rd',
@@ -324,6 +325,13 @@
 		  'msvs_disabled_warnings': [
 			'4090'
 		  ],
+		  'msvs_settings': {
+              'VCLinkerTool': {
+                'AdditionalDependencies': [
+					'Ws2_32.lib',
+				],
+              },
+            },
         }, { # OS != "win",
           'defines': [
             

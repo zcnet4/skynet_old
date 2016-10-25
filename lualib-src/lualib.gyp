@@ -17,15 +17,15 @@
       # TODO(ajwong): For internal pepper plugins, which are statically linked
       # into chrome, do we want to build w/o -fPIC?  If so, how can we express
       # that in the build system?
-      ['os_posix == 1 and OS != "mac" and OS != "android"', {
-        'cflags': ['-fPIC', '-fvisibility=default'],
+      #['os_posix == 1 and OS != "mac" and OS != "android"', {
+      #  'cflags': ['-fPIC', '-fvisibility=default'],
 
         # This is needed to make the Linux shlib build happy. Without this,
         # -fvisibility=hidden gets stripped by the exclusion in common.gypi
         # that is triggered when a shared library build is specified.
-        'cflags/': [['include', '^-fvisibility=default$']],
-		'scons_variable_settings': {'SHLIBPREFIX':'',},
-      }],
+      #  'cflags/': [['include', '^-fvisibility=default$']],
+	  #	'scons_variable_settings': {'SHLIBPREFIX':'',},
+      #}],
     ],
 	'include_dirs': [
 		# 配置全局开发目录。
@@ -69,6 +69,16 @@
 		  'msvs_disabled_warnings': [
 			'4204'
 		  ],
+		  # Add the default import libs.
+        'msvs_settings':{
+          'VCLinkerTool': {
+            #'MinimumRequiredVersion' : '5.01',
+            'AdditionalDependencies': [
+              #'User32.lib',
+			  'Ws2_32.lib',
+            ],
+          },
+        },
 		  'dependencies': [	
 			'../3rd/3rd.gyp:posix_win',
 		  ],

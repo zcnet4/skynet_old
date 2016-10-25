@@ -17,15 +17,15 @@
       # TODO(ajwong): For internal pepper plugins, which are statically linked
       # into chrome, do we want to build w/o -fPIC?  If so, how can we express
       # that in the build system?
-      ['os_posix == 1 and OS != "mac" and OS != "android"', {
-        'cflags': ['-fPIC', '-fvisibility=default'],
+      #['os_posix == 1 and OS != "mac" and OS != "android"', {
+      #  'cflags': ['-fPIC', '-fvisibility=default'],
 
         # This is needed to make the Linux shlib build happy. Without this,
         # -fvisibility=hidden gets stripped by the exclusion in common.gypi
         # that is triggered when a shared library build is specified.
-        'cflags/': [['include', '^-fvisibility=default$']],
-		'scons_variable_settings': {'SHLIBPREFIX':'',},
-      }],
+      #  'cflags/': [['include', '^-fvisibility=default$']],
+	  #	'scons_variable_settings': {'SHLIBPREFIX':'',},
+      #}],
     ],
 	'include_dirs': [
 		# 配置全局开发目录。
@@ -38,49 +38,10 @@
 		#'NOMINMAX',
 	],
   },
+  'includes': [
+	'posix_win/posix.gypi',
+  ],
   'targets': [
-	{
-	  # 目标工程名
-      'target_name': 'posix_win',      
-	  'conditions': [
-        ['OS=="win"', {
-		'type': 'shared_library',
-		'include_dirs': [
-			'posix_win',
-		],
-          #目标工程源代码路径
-		'sources': [
-			"posix_win/arpa/inet.h",
-			"posix_win/cpoll/cpoll.h",
-			"posix_win/cpoll/cpoll.cpp",
-			"posix_win/netinet/in.h",
-			"posix_win/netinet/tcp.h",
-			"posix_win/sys/file.h",
-			"posix_win/sys/socket.h",
-			"posix_win/atomic_lock.c",
-			"posix_win/atomic_lock.h",
-			"posix_win/dlfcn.c",
-			"posix_win/dlfcn.h",
-			"posix_win/pthread.h",
-			"posix_win/sched.h",
-			"posix_win/semaphore.h",
-			"posix_win/unistd.c",
-			"posix_win/unistd.h",
-			"posix_win/posix.def",
-		],
-		'direct_dependent_settings': {
-			'include_dirs': [
-				'posix_win',
-			],
-		},
-        }, { # OS != "win",
-          'defines': [
-            
-          ],
-		  'type': 'none',
-        }]
-      ],
-    },
     {
 	  # 目标工程名
       'target_name': 'lua',
