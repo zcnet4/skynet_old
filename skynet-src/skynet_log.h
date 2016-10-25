@@ -11,4 +11,8 @@ FILE * skynet_log_open(struct skynet_context * ctx, uint32_t handle);
 void skynet_log_close(struct skynet_context * ctx, FILE *f, uint32_t handle);
 void skynet_log_output(FILE *f, uint32_t source, int type, int session, void * buffer, size_t sz);
 
+//////////////////////////////////////////////////////////////////////////
+//
+void my_log_init();
+void my_log_output(char* log);
 #endif

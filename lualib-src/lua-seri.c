@@ -608,3 +608,62 @@ luaseri_pack(lua_State *L) {
 
 	return 2;
 }
+
+
+char* _luaseri_pack_impl(lua_State* L, int from, int to, int* buf_size) {
+	struct block temp;
+	temp.next = NULL;
+	struct write_block wb;
+	wb_init(&wb, &temp);
+	//
+	int n = to - from;
+	int i;
+	for (i = 1; i <= n; i++) {
+		pack_one(L, &wb, from + i, 0);
+	}
+	//
+	assert(wb.head == &temp);
+  //[len][cmd][session][content]:包长度+命令+会话+内容。
+  int _buf_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + wb.len;
+  char* buf = skynet_malloc(_buf_size);
+  //
+  char* ptr = buf + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t);
+  int sz = wb.len;
+  struct block* b = &temp;
+	while (sz > 0) {
+		if (sz >= BLOCK_SIZE) {
+	      memcpy(ptr, b->buffer, BLOCK_SIZE);
+	      ptr += BLOCK_SIZE;
+	      sz -= BLOCK_SIZE;
+	      b = b->next;
+	    } else {
+	      memcpy(ptr, b->buffer, sz);
+	      break;
+	    }
+	}
+	wb_free(&wb);
+	//
+  *buf_size = _buf_size;
+  return buf;
+}
+
+void _luaseri_unpack_impl(lua_State* L, const char* buf, int buf_size) {
+	struct read_block rb;
+	rball_init(&rb, (char*)buf, buf_size);
+
+	int i;
+	for (i=0;;i++) {
+		if (i%8==7) {
+			luaL_checkstack(L,LUA_MINSTACK,NULL);
+		}
+		uint8_t type = 0;
+		uint8_t *t = rb_read(&rb, sizeof(type));
+		if (t==NULL)
+			break;
+		type = *t;
+		push_value(L, &rb, type & 0x7, type>>3);
+	}
+
+	// Need not free buffer
+  //return lua_gettop(L) - 1;
+}

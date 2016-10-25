@@ -41,7 +41,7 @@ struct chunk {
 struct pool {
 	struct chunk * header;
 	struct chunk * current;
-	int current_used;
+  size_t current_used;
 };
 
 struct sproto {
@@ -141,7 +141,7 @@ count_array(const uint8_t * stream) {
 static int
 struct_field(const uint8_t * stream, size_t sz) {
 	const uint8_t * field;
-	int fn, header, i;
+	size_t fn, header, i;
 	if (sz < SIZEOF_LENGTH)
 		return -1;
 	fn = toword(stream);
@@ -966,7 +966,7 @@ sproto_encode(const struct sproto_type *st, void * buffer, int size, sproto_call
 }
 
 static int
-decode_array_object(sproto_callback cb, struct sproto_arg *args, uint8_t * stream, int sz) {
+decode_array_object(sproto_callback cb, struct sproto_arg *args, uint8_t * stream, size_t sz) {
 	uint32_t hsz;
 	int index = 1;
 	while (sz > 0) {
@@ -1002,7 +1002,7 @@ static int
 decode_array(sproto_callback cb, struct sproto_arg *args, uint8_t * stream) {
 	uint32_t sz = todword(stream);
 	int type = args->type;
-	int i;
+	size_t i;
 	if (sz == 0) {
 		// It's empty array, call cb with index == -1 to create the empty array.
 		args->index = -1;
@@ -1102,7 +1102,7 @@ sproto_decode(const struct sproto_type *st, const void * data, int size, sproto_
 			if (size < SIZEOF_LENGTH)
 				return -1;
 			sz = todword(datastream);
-			if (size < sz + SIZEOF_LENGTH)
+			if (size < (int)sz + SIZEOF_LENGTH)
 				return -1;
 			datastream += sz+SIZEOF_LENGTH;
 			size -= sz+SIZEOF_LENGTH;

@@ -78,7 +78,7 @@ struct socket {
 	int fd;
 	int id;
 	uint16_t protocol;
-	uint16_t type;
+  uint32_t type;
 	union {
 		int size;
 		uint8_t udp_address[UDP_ADDRESS_SIZE];
@@ -311,7 +311,9 @@ socket_server_create() {
 	ss->event_index = 0;
 	memset(&ss->soi, 0, sizeof(ss->soi));
 	FD_ZERO(&ss->rfds);
+#ifndef _MSC_VER
 	assert(ss->recvctrl_fd < FD_SETSIZE);
+#endif
 
 	return ss;
 }
@@ -430,7 +432,11 @@ open_socket(struct socket_server *ss, struct request_open * request, struct sock
 		socket_keepalive(sock);
 		sp_nonblocking(sock);
 		status = connect( sock, ai_ptr->ai_addr, ai_ptr->ai_addrlen);
-		if ( status != 0 && errno != EINPROGRESS) {
+#ifdef _MSC_VER    
+    if (status != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
+#else
+    if (status != 0 && errno != EINPROGRESS) {
+#endif
 			close(sock);
 			sock = -1;
 			continue;
@@ -1064,7 +1070,7 @@ static int
 forward_message_udp(struct socket_server *ss, struct socket *s, struct socket_message * result) {
 	union sockaddr_all sa;
 	socklen_t slen = sizeof(sa);
-	int n = recvfrom(s->fd, ss->udpbuffer,MAX_UDP_PACKAGE,0,&sa.s,&slen);
+	int n = recvfrom(s->fd, (void*)ss->udpbuffer,MAX_UDP_PACKAGE,0,&sa.s,&slen);
 	if (n<0) {
 		switch(errno) {
 		case EINTR:

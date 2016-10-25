@@ -199,7 +199,7 @@ snlua_signal(struct snlua *l, int signal) {
 	if (signal == 0) {
 #ifdef lua_checksig
 	// If our lua support signal (modified lua version by skynet), trigger it.
-	skynet_sig_L = l->L;
+  skynet_lua_signal(l->L);
 #endif
 	} else if (signal == 1) {
 		skynet_error(l->ctx, "Current Memory %.3fK", (float)l->mem / 1024);

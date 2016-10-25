@@ -11,7 +11,11 @@ skynet_log_open(struct skynet_context * ctx, uint32_t handle) {
 	if (logpath == NULL)
 		return NULL;
 	size_t sz = strlen(logpath);
+#ifdef _MSC_VER
+  char tmp[1024 + 16];
+#else
 	char tmp[sz + 16];
+#endif
 	sprintf(tmp, "%s/%08x.log", logpath, handle);
 	FILE *f = fopen(tmp, "ab");
 	if (f) {
@@ -75,3 +79,39 @@ skynet_log_output(FILE *f, uint32_t source, int type, int session, void * buffer
 		fflush(f);
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+FILE* s_skynet_debug_log = NULL;
+
+void skynet_onexit() {
+  my_log_output("skynet exit!!!");
+  fclose(s_skynet_debug_log);
+  s_skynet_debug_log = NULL;
+}
+
+void my_log_init() {
+  //log文件名中加入pid和时间信息；
+  time_t now = time(NULL);
+  char Time[32] = { 0 };
+  strftime(Time, 20, "%Y%m%d%H%M%S", localtime(&now));
+  mkdir("log", 0777);
+  char logfile[256];
+  snprintf(logfile, sizeof(logfile), "log/skynet_%u_%s.debug", getpid(), Time);
+  //
+  s_skynet_debug_log = fopen(logfile, "w");
+  setvbuf(s_skynet_debug_log, NULL, _IONBF, 0);
+  atexit(skynet_onexit);
+}
+
+void my_log_output(char* log) {
+  time_t now = time(NULL);
+  char Time[32] = { 0 };
+  strftime(Time, 20, "%Y%m%d%H%M%S", localtime(&now));
+
+  fprintf(s_skynet_debug_log, "[%s] %s", Time, log);
+  fprintf(s_skynet_debug_log, "\n");
+  fflush(s_skynet_debug_log);
+}
+

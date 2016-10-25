@@ -14,6 +14,9 @@
 #include <signal.h>
 #include <assert.h>
 
+#ifdef _MSC_VER
+#include "cpoll/cpoll.h"
+#endif
 static int
 optint(const char *key, int opt) {
 	const char * str = skynet_getenv(key);
@@ -70,7 +73,32 @@ _init_env(lua_State *L) {
 				fprintf(stderr, "Invalid config table key = %s\n", key);
 				exit(1);
 			}
-			skynet_setenv(key,value);
+#ifdef _MSC_VER
+      if (!strcmp(key, "cpath") || !strcmp(key, "lua_cpath")) {
+        const char* p = value;
+        const char* src = "?.so";
+        const char* dst = "?.dll";
+        //
+        int src_len = strlen(src);
+        int dst_len = strlen(dst);
+        char buf[8 * 1024] = { 0 };
+        char* out = buf;
+        while (*p != '\0') {
+          if (strncmp(p, src, src_len) != 0) {
+            *out++ = *p++;
+          } else {
+            strcat(out, dst);
+            p += src_len;
+            out += dst_len;
+          }
+        }
+        skynet_setenv(key, buf);
+      } else {
+        skynet_setenv(key, value);
+      }
+#else
+      skynet_setenv(key, value);
+#endif
 		}
 		lua_pop(L,1);
 	}
@@ -106,6 +134,9 @@ main(int argc, char *argv[]) {
 			"usage: skynet configfilename\n");
 		return 1;
 	}
+#ifdef _MSC_VER
+	cpoll_startup();
+#endif
 
 	luaS_initshr();
 	skynet_globalinit();
@@ -136,6 +167,7 @@ main(int argc, char *argv[]) {
 	config.bootstrap = optstring("bootstrap","snlua bootstrap");
 	config.daemon = optstring("daemon", NULL);
 	config.logger = optstring("logger", NULL);
+	
 	config.logservice = optstring("logservice", "logger");
 
 	lua_close(L);
@@ -144,5 +176,8 @@ main(int argc, char *argv[]) {
 	skynet_globalexit();
 	luaS_exitshr();
 
+#ifdef _MSC_VER
+	cpoll_cleanup();
+#endif
 	return 0;
 }

@@ -351,6 +351,7 @@ lnow(lua_State *L) {
 	return 1;
 }
 
+#include "skynet_proto.h"
 int
 luaopen_skynet_core(lua_State *L) {
 	luaL_checkversion(L);
@@ -367,6 +368,10 @@ luaopen_skynet_core(lua_State *L) {
 		{ "pack", luaseri_pack },
 		{ "unpack", luaseri_unpack },
 		{ "packstring", lpackstring },
+    { "proto_pack", _skynet_proto_pack },
+    { "proto_unpack", _skynet_proto_unpack },
+    { "proto_tochat", _skynet_proto_tochat },
+    { "proto_auth", _skynet_proto_auth },
 		{ "trash" , ltrash },
 		{ "callback", lcallback },
 		{ "now", lnow },

@@ -202,7 +202,7 @@ encode(const struct sproto_arg *args) {
 		} else {
 			str = lua_tolstring(L, -1, &sz);
 		}
-		if (sz > args->length)
+		if ((int)sz > args->length)
 			return SPROTO_CB_ERROR;
 		memcpy(args->value, str, sz);
 		lua_pop(L,1);
@@ -482,11 +482,11 @@ lpack(lua_State *L) {
 	void * output = lua_touserdata(L, lua_upvalueindex(1));
 	int bytes;
 	int osz = lua_tointeger(L, lua_upvalueindex(2));
-	if (osz < maxsz) {
+	if (osz < (int)maxsz) {
 		output = expand_buffer(L, osz, maxsz);
 	}
 	bytes = sproto_pack(buffer, sz, output, maxsz);
-	if (bytes > maxsz) {
+  if (bytes >(int)maxsz) {
 		return luaL_error(L, "packing error, return size = %d", bytes);
 	}
 	lua_pushlstring(L, output, bytes);

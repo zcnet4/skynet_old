@@ -1201,7 +1201,7 @@ lobjectid(lua_State *L) {
 	} else {
 		time_t ti = time(NULL);
 		// old_counter is a static var, use atom inc.
-		uint32_t id = ATOM_FINC(&oid_counter);
+		uint32_t id = ATOM_FINC((int*)&oid_counter);
 
 		oid[2] = (ti>>24) & 0xff;
 		oid[3] = (ti>>16) & 0xff;

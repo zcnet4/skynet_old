@@ -8,11 +8,16 @@
 #define skynet_realloc realloc
 #define skynet_free free
 
+#ifndef NOUSE_JEMALLOC
 void * skynet_malloc(size_t sz);
 void * skynet_calloc(size_t nmemb,size_t size);
 void * skynet_realloc(void *ptr, size_t size);
 void skynet_free(void *ptr);
+#endif
 char * skynet_strdup(const char *str);
 void * skynet_lalloc(void *ptr, size_t osize, size_t nsize);	// use for lua
 
+#endif
+#ifdef _MSC_VER
+#include <unistd.h>
 #endif

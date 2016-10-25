@@ -32,13 +32,14 @@ skynet_error(struct skynet_context * context, const char *msg, ...) {
 		data = skynet_strdup(tmp);
 	} else {
 		int max_size = LOG_MESSAGE_SIZE;
-		for (;;) {
+    int i = 0;
+    for (; i < 5; ++i) {
 			max_size *= 2;
 			data = skynet_malloc(max_size);
 			va_start(ap,msg);
 			len = vsnprintf(data, max_size, msg, ap);
 			va_end(ap);
-			if (len < max_size) {
+			if (len < max_size && len >= 0) {
 				break;
 			}
 			skynet_free(data);

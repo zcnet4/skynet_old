@@ -22,7 +22,7 @@ skynet_harbor_send(struct remote_message *rmsg, uint32_t source, int session) {
 int 
 skynet_harbor_message_isremote(uint32_t handle) {
 	assert(HARBOR != ~0);
-	int h = (handle & ~HANDLE_MASK);
+  uint32_t h = (handle & ~HANDLE_MASK);
 	return h != HARBOR && h !=0;
 }
 

@@ -345,7 +345,7 @@ static void
 dispatch_name_queue(struct harbor *h, struct keyvalue * node) {
 	struct harbor_msg_queue * queue = node->queue;
 	uint32_t handle = node->value;
-	int harbor_id = handle >> HANDLE_REMOTE_SHIFT;
+  uint32_t harbor_id = handle >> HANDLE_REMOTE_SHIFT;
 	struct skynet_context * context = h->ctx;
 	struct slave *s = &h->s[harbor_id];
 	int fd = s->fd;
@@ -606,7 +606,12 @@ harbor_command(struct harbor * h, const char * msg, size_t sz, int session, uint
 	}
 	case 'S' :
 	case 'A' : {
+#ifdef _MSC_VER
+		assert(s <= 1024);
+		char buffer[1024+1];
+#else
 		char buffer[s+1];
+#endif
 		memcpy(buffer, name, s);
 		buffer[s] = 0;
 		int fd=0, id=0;

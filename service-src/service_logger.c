@@ -1,13 +1,18 @@
 #include "skynet.h"
+#include "skynet_env.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
+#include <time.h>
 
+#ifdef _MSC_VER
+#include <direct.h>
+#include <Windows.h>
+#include <locale.h>
+#endif
 struct logger {
 	FILE * handle;
-	char * filename;
 	int close;
 };
 
@@ -16,8 +21,6 @@ logger_create(void) {
 	struct logger * inst = skynet_malloc(sizeof(*inst));
 	inst->handle = NULL;
 	inst->close = 0;
-	inst->filename = NULL;
-
 	return inst;
 }
 
@@ -26,45 +29,63 @@ logger_release(struct logger * inst) {
 	if (inst->close) {
 		fclose(inst->handle);
 	}
-	skynet_free(inst->filename);
 	skynet_free(inst);
 }
 
 static int
-logger_cb(struct skynet_context * context, void *ud, int type, int session, uint32_t source, const void * msg, size_t sz) {
+_logger(struct skynet_context * context, void *ud, int type, int session, uint32_t source, const void * msg, size_t sz) {
 	struct logger * inst = ud;
-	switch (type) {
-	case PTYPE_SYSTEM:
-		if (inst->filename) {
-			inst->handle = freopen(inst->filename, "a", inst->handle);
-		}
-		break;
-	case PTYPE_TEXT:
-		fprintf(inst->handle, "[:%08x] ",source);
-		fwrite(msg, sz , 1, inst->handle);
-		fprintf(inst->handle, "\n");
-		fflush(inst->handle);
-		break;
-	}
+#ifdef _MSC_VER
+	fwprintf(inst->handle, L"[:%08x] ",source);
+  fwrite(msg, sz, 1, inst->handle);
+	fwprintf(inst->handle, L"\n");
+#else
+	fprintf(inst->handle, "[:%08x] ",source);
+	fwrite(msg, sz , 1, inst->handle);
+	fprintf(inst->handle, "\n");
+#endif
+	fflush(inst->handle);
 
 	return 0;
 }
 
+#ifdef _MSC_VER
+static int Mkdir(const char* dir) {
+	return _mkdir(dir);
+}
+#else
+static int Mkdir(const char* dir) {
+	return mkdir(dir, 0777);
+}
+#endif
+
 int
 logger_init(struct logger * inst, struct skynet_context *ctx, const char * parm) {
 	if (parm) {
-		inst->handle = fopen(parm,"w");
+		//log文件名中加入pid和时间信息；
+		time_t now = time(NULL);
+		char Time[32] = { 0 };
+		strftime(Time, 20, "%Y%m%d_%H%M%S", localtime(&now));
+
+		const char * logpath = skynet_getenv("logpath");
+		Mkdir(logpath);
+
+		char logfile[256];
+		snprintf(logfile, sizeof(logfile), "%s/%s_%u_%s.%s", logpath, parm, getpid(), Time, "log");
+
+		inst->handle = fopen(logfile, "w");
 		if (inst->handle == NULL) {
 			return 1;
 		}
-		inst->filename = skynet_malloc(strlen(parm)+1);
-		strcpy(inst->filename, parm);
 		inst->close = 1;
 	} else {
 		inst->handle = stdout;
 	}
+#ifdef _MSC_VER
+	_wsetlocale(0, L"chs");
+#endif
 	if (inst->handle) {
-		skynet_callback(ctx, inst, logger_cb);
+		skynet_callback(ctx, inst, _logger);
 		skynet_command(ctx, "REG", ".logger");
 		return 0;
 	}
