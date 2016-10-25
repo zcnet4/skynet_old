@@ -84,6 +84,10 @@ void sigaction(int flag, struct sigaction *action, int param) {
 	// Not implemented
 	//__asm int 3;
 }
+void sigfillset(sigset_t* sigset) {
+  // Not implemented
+  //__asm int 3;
+}
 
 int pipe(int fd[2]) {
 

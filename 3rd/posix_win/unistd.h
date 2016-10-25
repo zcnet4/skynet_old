@@ -38,12 +38,31 @@ int clock_gettime(int what, struct timespec *ti);
 enum { LOCK_EX, LOCK_NB };
 int flock(int fd, int flag);
 
+#define _NSIG      64
 
+#ifdef __i386__
+# define _NSIG_BPW 32
+#else
+# define _NSIG_BPW 64
+#endif
+
+#define _NSIG_WORDS    (_NSIG / _NSIG_BPW)
+typedef struct {
+  unsigned long sig[_NSIG_WORDS];
+} sigset_t;
+# define SA_RESTART   0x10000000 /* Restart syscall on signal return.  */
 struct sigaction {
-	void (*sa_handler)(int);
+  void(*sa_handler)(int);
+  //void(*sa_sigaction)(int, siginfo_t *, void *);
+  sigset_t sa_mask;
+  int sa_flags;
+  void(*sa_restorer)(void);
 };
-enum { SIGPIPE };
+#define SIGHUP  1
+#define SIGPIPE 13
+
 void sigaction(int flag, struct sigaction *action, int param);
+void sigfillset(sigset_t* sigset);
 
 int pipe(int fd[2]);
 int daemon(int a, int b);
