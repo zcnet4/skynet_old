@@ -1,0 +1,100 @@
+Index: mysql.lua
+===================================================================
+--- mysql.lua	(revision 16356)
++++ mysql.lua	(working copy)
+@@ -31,6 +31,7 @@
+ local STATE_COMMAND_SENT = 2
+ 
+ local COM_QUERY = 0x03
++local COM_PING = 0x0E
+ 
+ local SERVER_MORE_RESULTS_EXISTS = 8
+ 
+@@ -649,8 +650,11 @@
+     return self
+ end
+ 
++function _M.reconnect()
++    self.sockchannel:close()
++    self.sockchannel:connect(true)
++end
+ 
+-
+ function _M.disconnect(self)
+     self.sockchannel:close()
+     setmetatable(self, nil)
+@@ -679,5 +683,20 @@
+     self.compact = value
+ end
+ 
++function _M.ping(self)
++    self.packet_no = -1
++    local querypacket = _compose_packet(self, strchar(COM_PING), 1)
+ 
++    local sockchannel = self.sockchannel
++    if not self.query_resp then
++        self.query_resp = _query_resp(self)
++    end
++
++    local ret = sockchannel:request(querypacket, self.query_resp)
++    if ret.badresult then
++        return false
++    end
++    return true
++end
++
+ return _M
+Index: redis.lua
+===================================================================
+--- redis.lua	(revision 16356)
++++ redis.lua	(working copy)
+@@ -177,6 +177,27 @@
+ 	return fd:request(compose_message ("SISMEMBER", {key, value}), read_boolean)
+ end
+ 
++function command:ping()
++	local fd = self[1]
++	local ping_cmd = {"*1", command_cache["ping"], "\r\n"}
++
++	return fd:request(ping_cmd, function(so)
++		local ok, res = read_response(so)
++		if ok and "PONG" == res then
++			res = true
++		else
++			print(res)
++			res = false
++		end
++		return ok, res
++	end)
++end
++
++function command:reconnect()
++	self[1]:close()
++    self[1]:connect(true)
++end
++
+ local function compose_table(lines, msg)
+ 	local tinsert = table.insert
+ 	tinsert(lines, count_cache[#msg])
+Index: socketchannel.lua
+===================================================================
+--- socketchannel.lua	(revision 16356)
++++ socketchannel.lua	(working copy)
+@@ -305,7 +305,7 @@
+ 
+ local function block_connect(self, once)
+ 	local r = check_connection(self)
+-	if r ~= nil then
++	if r then
+ 		return r
+ 	end
+ 	local err
+@@ -327,7 +327,7 @@
+ 	end
+ 
+ 	r = check_connection(self)
+-	if r == nil then
++	if not r then
+ 		skynet.error(string.format("Connect to %s:%d failed (%s)", self.__host, self.__port, err))
+ 		error(socket_error)
+ 	else

@@ -31,6 +31,7 @@ local STATE_CONNECTED = 1
 local STATE_COMMAND_SENT = 2
 
 local COM_QUERY = 0x03
+local COM_PING = 0x0E
 
 local SERVER_MORE_RESULTS_EXISTS = 8
 
@@ -649,7 +650,10 @@ function _M.connect(opts)
     return self
 end
 
-
+function _M.reconnect()
+    self.sockchannel:close()
+    self.sockchannel:connect(true)
+end
 
 function _M.disconnect(self)
     self.sockchannel:close()
@@ -679,5 +683,20 @@ function _M.set_compact_arrays(self, value)
     self.compact = value
 end
 
+function _M.ping(self)
+    self.packet_no = -1
+    local querypacket = _compose_packet(self, strchar(COM_PING), 1)
+
+    local sockchannel = self.sockchannel
+    if not self.query_resp then
+        self.query_resp = _query_resp(self)
+    end
+
+    local ret = sockchannel:request(querypacket, self.query_resp)
+    if ret.badresult then
+        return false
+    end
+    return true
+end
 
 return _M

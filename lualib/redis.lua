@@ -177,6 +177,27 @@ function command:sismember(key, value)
 	return fd:request(compose_message ("SISMEMBER", {key, value}), read_boolean)
 end
 
+function command:ping()
+	local fd = self[1]
+	local ping_cmd = {"*1", command_cache["ping"], "\r\n"}
+
+	return fd:request(ping_cmd, function(so)
+		local ok, res = read_response(so)
+		if ok and "PONG" == res then
+			res = true
+		else
+			print(res)
+			res = false
+		end
+		return ok, res
+	end)
+end
+
+function command:reconnect()
+	self[1]:close()
+    self[1]:connect(true)
+end
+
 local function compose_table(lines, msg)
 	local tinsert = table.insert
 	tinsert(lines, count_cache[#msg])
