@@ -11,8 +11,6 @@ skynet.start(function()
 	local launcher = assert(skynet.launch("snlua","launcher"))
 	skynet.name(".launcher", launcher)
 
-	assert(skynet.launch("harbor2", "master"))
-	
 	local harbor_id = tonumber(skynet.getenv "harbor" or 0)
 	if harbor_id == 0 then
 		assert(standalone ==  nil)
@@ -26,7 +24,10 @@ skynet.start(function()
 	if standalone then
 		local datacenter = skynet.newservice "datacenterd"
 		skynet.name("DATACENTER", datacenter)
+	else
+		assert(skynet.launch("harbor2", "master"))
 	end
+
 	skynet.newservice "service_mgr"
 	pcall(skynet.newservice, skynet.getenv "start" or "main")
 	skynet.exit()
