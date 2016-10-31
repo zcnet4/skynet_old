@@ -33,7 +33,6 @@ THE SOFTWARE
 #include <string.h>
 #include <time.h>
 
-//#include <dirent.h>
 #include <fcntl.h>
 //#include <grp.h>
 //#include <sys/select.h>

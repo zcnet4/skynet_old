@@ -1,5 +1,8 @@
 #include "tar.h"
 #include <io.h>
+#include "dirent.h"
+#include "unistd.h"
+
 #define	S_ISUID	0004000			/* set user id on execution */
 #define	S_ISGID	0002000			/* set group id on execution */
 #ifndef _POSIX_SOURCE
@@ -7,9 +10,6 @@
 #endif
 
 #define	S_IRWXU	0000700			/* RWX mask for owner */
-#define	S_IRUSR	0000400			/* R for owner */
-#define	S_IWUSR	0000200			/* W for owner */
-#define	S_IXUSR	0000100			/* X for owner */
 
 #ifndef _POSIX_SOURCE
 //#define	S_IREAD		S_IRUSR
@@ -18,24 +18,14 @@
 #endif
 
 #define	S_IRWXG	0000070			/* RWX mask for group */
-#define	S_IRGRP	0000040			/* R for group */
-#define	S_IWGRP	0000020			/* W for group */
-#define	S_IXGRP	0000010			/* X for group */
 
 #define	S_IRWXO	0000007			/* RWX mask for other */
-#define	S_IROTH	0000004			/* R for other */
-#define	S_IWOTH	0000002			/* W for other */
-#define	S_IXOTH	0000001			/* X for other */
 
 #ifndef _POSIX_SOURCE
 //#define	S_IFMT	 0170000		/* type of file */
-#define	S_IFIFO	 0010000		/* named pipe (fifo) */
 //#define	S_IFCHR	 0020000		/* character special */
 //#define	S_IFDIR	 0040000		/* directory */
-#define	S_IFBLK	 0060000		/* block special */
 //#define	S_IFREG	 0100000		/* regular */
-#define	S_IFLNK	 0120000		/* symbolic link */
-#define	S_IFSOCK 0140000		/* socket */
 
 #define	S_ISVTX	 0001000		/* save swapped text even after use */
 
@@ -45,19 +35,8 @@
 #define	DEFFILEMODE	(S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
 #endif
 
-#define	S_ISDIR(m)	((m & 0170000) == 0040000)	/* directory */
-#define	S_ISCHR(m)	((m & 0170000) == 0020000)	/* char special */
-#define	S_ISBLK(m)	((m & 0170000) == 0060000)	/* block special */
-#define	S_ISREG(m)	((m & 0170000) == 0100000)	/* regular file */
-#define	S_ISFIFO(m)	((m & 0170000) == 0010000)	/* fifo */
-#ifndef _POSIX_SOURCE
-#define	S_ISLNK(m)	((m & 0170000) == 0120000)	/* symbolic link */
-#define	S_ISSOCK(m)	((m & 0170000) == 0140000)	/* socket */
-#endif 
-
 #define DEFAULT_DIR_MODE S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH // 0755
 
-#include "unistd.h"
 #ifdef _MSC_VER
 //#include "Windows.h"
 int lstat(const char *path, struct stat *buf) {
@@ -83,6 +62,9 @@ int symlink(const char * oldpath, const char * newpath) {
 	//int rs = CreateSymbolicLink(oldpath, newpath, 0);
 	//return !rs;
 	return 0;
+}
+int mkfifo(const char *filename, mode_t mode) {
+  return 0;
 }
 #endif // _MSC_VER
 
@@ -957,7 +939,7 @@ int write_entries(const int fd, struct tar_t ** archive, struct tar_t ** head, c
                 // if not special directories . and ..
                 const size_t sublen = strlen(dir -> d_name);
                 if (strncmp(dir -> d_name, ".", sublen) && strncmp(dir -> d_name, "..", sublen)){
-                    char * path = calloc(len + sublen + 2, sizeof(char));
+                    char * path = (char*)calloc(len + sublen + 2, sizeof(char));
                     sprintf(path, "%s/%s", parent, dir -> d_name);
 
                     // recursively write each subdirectory
@@ -1141,7 +1123,7 @@ int recursive_mkdir(const char * dir, const unsigned int mode, const char verbos
         return 0;
     }
 
-    char * path = calloc(len + 1, sizeof(char));
+    char * path = (char*)calloc(len + 1, sizeof(char));
     strncpy(path, dir, len);
 
     // remove last '/'
@@ -1153,16 +1135,22 @@ int recursive_mkdir(const char * dir, const unsigned int mode, const char verbos
     for(char * p = path + 1; *p; p++){
         if (*p == '/'){
             *p = '\0';
-
+#ifdef _MSC_VER
+            if ((rc = mkdir(path))) {
+#else
             if ((rc = mkdir(path, mode?mode:DEFAULT_DIR_MODE))){
-                EXIST_ERROR(stderr, "Error: Could not create directory %s: %s\n", path, strerror(rc));
+#endif // _MSC_VER
+              EXIST_ERROR(stderr, "Error: Could not create directory %s: %s\n", path, strerror(rc));
             }
 
             *p = '/';
         }
     }
-
+#ifdef _MSC_VER
+    if (mkdir(path) < 0) {
+#else
     if (mkdir(path, mode?mode:DEFAULT_DIR_MODE) < 0){
+#endif // _MSC_VER
         EXIST_ERROR(stderr, "Error: Could not create directory %s: %s\n", path, strerror(rc));
     }
 

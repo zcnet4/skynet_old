@@ -244,6 +244,33 @@
         }]
       ],
     },
+	{
+      'target_name': 'tar',
+      'type': 'static_library',
+      'dependencies': [
+		'posix_win',
+      ],
+      'defines': [
+      ],
+      'include_dirs': [
+		'posix_win',
+      ],
+      'sources': [
+		"tar/tar.cc",
+		"tar/tar.h",
+	  ],
+	  'conditions': [
+        ['OS=="win"', {
+		  'sources': [
+			
+		  ],
+        }, { # OS != "win",
+          'defines': [
+            
+          ],
+        }]
+      ],
+    },
   ],
   
 }

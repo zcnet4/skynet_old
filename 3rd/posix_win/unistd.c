@@ -13,9 +13,9 @@ static LONGLONG get_cpu_freq() {
 	return freq.QuadPart;
 }
 
-pid_t getpid() {
-	return (pid_t)GetCurrentProcessId();
-}
+//pid_t getpid() {
+//	return (pid_t)GetCurrentProcessId();
+//}
 
 int kill(pid_t pid, int exit_code) {
 	return TerminateProcess((HANDLE)pid, exit_code);
@@ -56,7 +56,7 @@ int clock_gettime(int what, struct timespec *ti) {
 		LARGE_INTEGER counter;
 		QueryPerformanceCounter(&counter);
 
-		ti->tv_sec = counter.QuadPart / freq;
+		ti->tv_sec = (long)counter.QuadPart / freq;
 		ti->tv_nsec = (counter.QuadPart / (freq / MICROSEC)) % MICROSEC;
 		return 0;
 	default:

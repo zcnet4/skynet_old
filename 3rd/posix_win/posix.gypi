@@ -28,6 +28,8 @@
 			"semaphore.h",
 			"unistd.c",
 			"unistd.h",
+			"dirent.c",
+			"dirent.h",
 			"posix.def",
 		],
 		'direct_dependent_settings': {

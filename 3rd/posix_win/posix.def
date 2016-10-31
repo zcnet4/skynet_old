@@ -20,6 +20,11 @@ EXPORTS
 	dlerror
 	dlsym
 
+  opendir
+  readdir
+  ;rewinddir
+  closedir
+
 	getpid
 	kill
 	;gethostname
