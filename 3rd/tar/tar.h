@@ -40,6 +40,8 @@ THE SOFTWARE
 //#include <sys/time.h>
 #include <sys/types.h>
 //#include <unistd.h>
+#include "dirent.h"
+
 
 
 #define BLOCKSIZE       512

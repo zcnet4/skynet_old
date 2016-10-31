@@ -1,6 +1,5 @@
 #include "tar.h"
 #include <io.h>
-#include "dirent.h"
 #include "unistd.h"
 
 #define	S_ISUID	0004000			/* set user id on execution */
@@ -84,7 +83,9 @@ int tar_read(const int fd, struct tar_t ** archive, const char verbosity){
     struct tar_t ** tar = archive;
     char update = 1;
     for(count = 0; ; count++){
-        *tar = (tar_t*)malloc(sizeof(struct tar_t));
+        *tar = (struct tar_t*)malloc(sizeof(struct tar_t));
+        memset(*tar, 0, sizeof(struct tar_t));
+
         if (update && (read_size(fd, (*tar) -> block, 512) != 512)){
             V_PRINT(stderr, "Error: Bad read. Stopping\n");
             tar_free(*tar);
@@ -605,7 +606,6 @@ int format_tar_data(struct tar_t * entry, const char * filename, const char verb
     }
 
     // start putting in new data
-    memset(entry, 0, sizeof(struct tar_t));
     strncpy(entry -> original_name, filename, 100);
     strncpy(entry -> name, filename + move, 100);
     sprintf(entry -> mode, "%07o", st.st_mode & 0777);
@@ -613,8 +613,8 @@ int format_tar_data(struct tar_t * entry, const char * filename, const char verb
     sprintf(entry -> gid, "%07o", st.st_gid);
     sprintf(entry -> size, "%011o", (int) st.st_size);
     sprintf(entry -> mtime, "%011o", (int) st.st_mtime);
-    strncpy(entry -> group, "None", 4);                     // default value
-    memcpy(entry -> ustar, "ustar\00000", 8);               // official value?
+    strncpy(entry -> group, "\0\0\0\0", 4);                     // default value
+    memcpy(entry -> ustar, "ustar  \0", 8);               // official value?
 
     // figure out filename type
     switch (st.st_mode & S_IFMT) {
@@ -682,13 +682,14 @@ int format_tar_data(struct tar_t * entry, const char * filename, const char verb
 }
 
 unsigned int calculate_checksum(struct tar_t * entry){
+  //checksum的计算方法为出去checksum字段其他所有的512-8共504个字节的ascii码相加的值再加上256(checksum当作八个空格，即8*0x20）
     // use 8 spaces (' ', char 0x20) in place of checksum string
     memset(entry -> check, ' ', sizeof(char) * 8);
 
     // sum of entire metadata
     unsigned int check = 0;
-    for(int i = 0; i < 500; i++){
-        check += (unsigned char) entry -> block[i];
+    for(int i = 0; i < 512; i++){
+      check += (unsigned char)(0xFF) & entry->block[i];
     }
     sprintf(entry -> check, "%06o", check);
 
@@ -894,7 +895,8 @@ int write_entries(const int fd, struct tar_t ** archive, struct tar_t ** head, c
     struct tar_t ** tar = archive;  // current entry
     char buf[512];              // one block buffer
     for(unsigned int i = 0; i < filecount; i++){
-        *tar = (tar_t*)malloc(sizeof(struct tar_t));
+        *tar = (struct tar_t*)malloc(sizeof(struct tar_t));
+        memset(*tar, 0, sizeof(struct tar_t));
 
         // stat file
         if (format_tar_data(*tar, files[i], verbosity) < 0){
