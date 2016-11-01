@@ -1,26 +1,26 @@
-#  skynet.gypÄ£°åÅäÖÃ
+#  skynet.gypæ¨¡æ¿é…ç½®
 # skynet.gypi
 {
   'targets': [
     {
-	  # Ä¿±ê¹¤³ÌÃû
+	  # ç›®æ ‡å·¥ç¨‹å
       'target_name': 'skynet',
       'type': 'shared_library',
-	  # Ä¿±ê¹¤³ÌÒÀÀµ¹¤³Ì
+	  # ç›®æ ‡å·¥ç¨‹ä¾èµ–å·¥ç¨‹
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'3rd/3rd.gyp:md5',
 		'3rd/3rd.gyp:cjson',
 		'lualib-src/lualib.gyp:*',
       ],
-	  #Ä¿±ê¹¤³ÌÔ¤´¦Àíºê¶¨Òå
+	  #ç›®æ ‡å·¥ç¨‹é¢„å¤„ç†å®å®šä¹‰
       'defines': [
       ],
-	  #Ä¿±ê¹¤³ÌC++ includeÄ¿Â¼
+	  #ç›®æ ‡å·¥ç¨‹C++ includeç›®å½•
       'include_dirs': [
 		'.'
       ],
-	  #Ä¿±ê¹¤³ÌÔ´´úÂëÂ·¾¶
+	  #ç›®æ ‡å·¥ç¨‹æºä»£ç è·¯å¾„
       'sources': [
 		"atomic.h",
 		"malloc_hook.h",
@@ -92,7 +92,7 @@
 			'dependencies': [	
 				'3rd/3rd.gyp:posix_win',
 			],
-			'msvs_postbuild': r'copy "$(SolutionDir)\\3rd\\pthreadVCE2.dll" "<(DEPTH)\\$(ConfigurationName)\\pthreadVCE2.dll"',
+			'msvs_postbuild': r'copy "$(ProjectDir)\\3rd\\pthreadVCE2.dll" "<(DEPTH)\\$(ConfigurationName)\\pthreadVCE2.dll"',
         }, { # OS != "win",
           'defines': [
             
@@ -102,20 +102,20 @@
       ],
     },
 	{
-	  # Ä¿±ê¹¤³ÌÃû
+	  # ç›®æ ‡å·¥ç¨‹å
       'target_name': 'snlua',
       'type': 'loadable_module',
-	  # Ä¿±ê¹¤³ÌÒÀÀµ¹¤³Ì
+	  # ç›®æ ‡å·¥ç¨‹ä¾èµ–å·¥ç¨‹
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'3rd/3rd.gyp:tar',
 		'skynet',
       ],
-	  #Ä¿±ê¹¤³ÌC++ includeÄ¿Â¼
+	  #ç›®æ ‡å·¥ç¨‹C++ includeç›®å½•
       'include_dirs': [
 		'.'
       ],
-	  #Ä¿±ê¹¤³ÌÔ´´úÂëÂ·¾¶
+	  #ç›®æ ‡å·¥ç¨‹æºä»£ç è·¯å¾„
       'sources': [
 		"../service-src/service_snlua.c",
 	  ],
@@ -135,19 +135,19 @@
       ],
     },
 	{
-	  # Ä¿±ê¹¤³ÌÃû
+	  # ç›®æ ‡å·¥ç¨‹å
       'target_name': 'logger',
       'type': 'loadable_module',
-	  # Ä¿±ê¹¤³ÌÒÀÀµ¹¤³Ì
+	  # ç›®æ ‡å·¥ç¨‹ä¾èµ–å·¥ç¨‹
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
       ],
-	  #Ä¿±ê¹¤³ÌC++ includeÄ¿Â¼
+	  #ç›®æ ‡å·¥ç¨‹C++ includeç›®å½•
       'include_dirs': [
 		'.'
       ],
-	  #Ä¿±ê¹¤³ÌÔ´´úÂëÂ·¾¶
+	  #ç›®æ ‡å·¥ç¨‹æºä»£ç è·¯å¾„
       'sources': [
 		"../service-src/service_logger.c",
 	  ],
@@ -167,19 +167,19 @@
       ],
     },
 	{
-	  # Ä¿±ê¹¤³ÌÃû
+	  # ç›®æ ‡å·¥ç¨‹å
       'target_name': 'harbor',
       'type': 'loadable_module',
-	  # Ä¿±ê¹¤³ÌÒÀÀµ¹¤³Ì
+	  # ç›®æ ‡å·¥ç¨‹ä¾èµ–å·¥ç¨‹
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
       ],
-	  #Ä¿±ê¹¤³ÌC++ includeÄ¿Â¼
+	  #ç›®æ ‡å·¥ç¨‹C++ includeç›®å½•
       'include_dirs': [
 		'.'
       ],
-	  #Ä¿±ê¹¤³ÌÔ´´úÂëÂ·¾¶
+	  #ç›®æ ‡å·¥ç¨‹æºä»£ç è·¯å¾„
       'sources': [
 		"../service-src/service_harbor.c",
 	  ],
@@ -199,19 +199,19 @@
       ],
     },
 	{
-	  # Ä¿±ê¹¤³ÌÃû
+	  # ç›®æ ‡å·¥ç¨‹å
       'target_name': 'harbor2',
       'type': 'loadable_module',
-	  # Ä¿±ê¹¤³ÌÒÀÀµ¹¤³Ì
+	  # ç›®æ ‡å·¥ç¨‹ä¾èµ–å·¥ç¨‹
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
       ],
-	  #Ä¿±ê¹¤³ÌC++ includeÄ¿Â¼
+	  #ç›®æ ‡å·¥ç¨‹C++ includeç›®å½•
       'include_dirs': [
 		'.'
       ],
-	  #Ä¿±ê¹¤³ÌÔ´´úÂëÂ·¾¶
+	  #ç›®æ ‡å·¥ç¨‹æºä»£ç è·¯å¾„
       'sources': [
 		"../service-src/service_harbor2.c",
 	  ],
@@ -231,19 +231,19 @@
       ],
     },
 	{
-	  # Ä¿±ê¹¤³ÌÃû
+	  # ç›®æ ‡å·¥ç¨‹å
       'target_name': 'gate',
       'type': 'loadable_module',
-	  # Ä¿±ê¹¤³ÌÒÀÀµ¹¤³Ì
+	  # ç›®æ ‡å·¥ç¨‹ä¾èµ–å·¥ç¨‹
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
       ],
-	  #Ä¿±ê¹¤³ÌC++ includeÄ¿Â¼
+	  #ç›®æ ‡å·¥ç¨‹C++ includeç›®å½•
       'include_dirs': [
 		'.'
       ],
-	  #Ä¿±ê¹¤³ÌÔ´´úÂëÂ·¾¶
+	  #ç›®æ ‡å·¥ç¨‹æºä»£ç è·¯å¾„
       'sources': [
 		"../service-src/service_gate.c",
 		"../service-src/hashid.h",
@@ -268,19 +268,19 @@
       ],
     },
 	{
-	  # Ä¿±ê¹¤³ÌÃû
+	  # ç›®æ ‡å·¥ç¨‹å
       'target_name': 'memory',
       'type': 'loadable_module',
-	  # Ä¿±ê¹¤³ÌÒÀÀµ¹¤³Ì
+	  # ç›®æ ‡å·¥ç¨‹ä¾èµ–å·¥ç¨‹
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
       ],
-	  #Ä¿±ê¹¤³ÌC++ includeÄ¿Â¼
+	  #ç›®æ ‡å·¥ç¨‹C++ includeç›®å½•
       'include_dirs': [
 		'.'
       ],
-	  #Ä¿±ê¹¤³ÌÔ´´úÂëÂ·¾¶
+	  #ç›®æ ‡å·¥ç¨‹æºä»£ç è·¯å¾„
       'sources': [
 		"../lualib-src/lua-memory.c",
 	  ],
@@ -300,19 +300,19 @@
       ],
     },
 	{
-	  # Ä¿±ê¹¤³ÌÃû
+	  # ç›®æ ‡å·¥ç¨‹å
       'target_name': 'socketdriver',
       'type': 'loadable_module',
-	  # Ä¿±ê¹¤³ÌÒÀÀµ¹¤³Ì
+	  # ç›®æ ‡å·¥ç¨‹ä¾èµ–å·¥ç¨‹
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
       ],
-	  #Ä¿±ê¹¤³ÌC++ includeÄ¿Â¼
+	  #ç›®æ ‡å·¥ç¨‹C++ includeç›®å½•
       'include_dirs': [
 		'.'
       ],
-	  #Ä¿±ê¹¤³ÌÔ´´úÂëÂ·¾¶
+	  #ç›®æ ‡å·¥ç¨‹æºä»£ç è·¯å¾„
       'sources': [
 		"../lualib-src/lua-socket.c",
 	  ],
