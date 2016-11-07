@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
 //	FileName		£º	D:\yy_code\strife\trunk\src\ChatServer\src\skynet_proto.h
-//	Creator			£º	(zc)
+//	Creator			£º	(zc) <zcnet4@gmail.com>
 //	CreateTime	£º	2016-4-8 14:10
 //	Description	£º	
 //

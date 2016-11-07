@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
 //	FileName		:	D:\yx_code\yx\skynet\3rd\posix_win\dirent.h
-//	Creator			:	(zc)
+//	Creator			:	(zc) <zcnet4@gmail.com>
 //	CreateTime	:	2016-10-31 13:00
 //	Description	:	
 //
