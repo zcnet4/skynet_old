@@ -49,6 +49,10 @@
 	  # 目标工程依赖工程
       'dependencies': [
 	    '3rd/3rd.gyp:lua',
+	    '3rd/3rd.gyp:md5',
+		'3rd/3rd.gyp:cjson',
+		'3rd/3rd.gyp:tar',
+		'3rd/3rd.gyp:protobuf',
 		'skynet',
 		'snlua',
 		'logger',

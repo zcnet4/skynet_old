@@ -41,6 +41,7 @@
   'includes': [
 	'posix_win/posix.gypi',
 	'tar/tar.gypi',
+	'pbc/pbc.gypi',
   ],
   'targets': [
     {

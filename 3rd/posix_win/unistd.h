@@ -41,14 +41,30 @@ These may be OR'd together.  */
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 /* should be in some equivalent to <sys/types.h> */
-typedef __int8            int8_t;
-typedef __int16           int16_t;
-typedef __int32           int32_t;
-typedef __int64           int64_t;
-typedef unsigned __int8   uint8_t;
-typedef unsigned __int16  uint16_t;
-typedef unsigned __int32  uint32_t;
-typedef unsigned __int64  uint64_t;
+#if _MSC_VER >= 1600
+/*
+MS VC++ 14.0 _MSC_VER = 1900 (Visual Studio 2015)
+MS VC++ 12.0 _MSC_VER = 1800 (VisualStudio 2013)
+MS VC++ 11.0 _MSC_VER = 1700 (VisualStudio 2012)
+MS VC++ 10.0 _MSC_VER = 1600(VisualStudio 2010)
+MS VC++ 9.0 _MSC_VER = 1500(VisualStudio 2008)
+MS VC++ 8.0 _MSC_VER = 1400(VisualStudio 2005)
+MS VC++ 7.1 _MSC_VER = 1310(VisualStudio 2003)
+MS VC++ 7.0 _MSC_VER = 1300(VisualStudio .NET)
+MS VC++ 6.0 _MSC_VER = 1200(VisualStudio 98)
+MS VC++ 5.0 _MSC_VER = 1100(VisualStudio 97)
+*/
+  #include <stdint.h>
+#else
+  typedef __int8            int8_t;
+  typedef __int16           int16_t;
+  typedef __int32           int32_t;
+  typedef __int64           int64_t;
+  typedef unsigned __int8   uint8_t;
+  typedef unsigned __int16  uint16_t;
+  typedef unsigned __int32  uint32_t;
+  typedef unsigned __int64  uint64_t;
+#endif
 
 #endif /* unistd.h  */
 

@@ -9,8 +9,6 @@
 	  # 目标工程依赖工程
       'dependencies': [
 		'3rd/3rd.gyp:lua',
-		'3rd/3rd.gyp:md5',
-		'3rd/3rd.gyp:cjson',
 		'lualib-src/lualib.gyp:*',
       ],
 	  #目标工程预处理宏定义
