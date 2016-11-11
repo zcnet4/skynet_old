@@ -7,10 +7,17 @@
 #include <Windows.h>
 #include <WinSock2.h>
 
-static LONGLONG get_cpu_freq() {
-    LARGE_INTEGER freq;
-    QueryPerformanceFrequency(&freq);
-	return freq.QuadPart;
+static LONGLONG get_ticks_per_second() {
+  static LONGLONG ticks_per_second = -1;
+  if (-1 == ticks_per_second) {
+    LARGE_INTEGER ticks_per_sec = { 0 };
+    if (QueryPerformanceFrequency(&ticks_per_sec))
+      ticks_per_second = ticks_per_sec.QuadPart;
+    else
+      ticks_per_second = 0;
+  }
+  //
+  return ticks_per_second;
 }
 
 //pid_t getpid() {
@@ -24,13 +31,14 @@ int kill(pid_t pid, int exit_code) {
 
 #define NANOSEC 1000000000
 #define MICROSEC 1000000
+const LONGLONG kMicrosecondsPerSecond = 1000 * 1000;
 
 void usleep(size_t us) {
 	if(us > 1000) {
 		Sleep(us / 1000);
 		return;
 	}
-	LONGLONG delta = get_cpu_freq() / MICROSEC * us;
+	LONGLONG delta = get_ticks_per_second() / MICROSEC * us;
 	LARGE_INTEGER counter;
 	QueryPerformanceCounter(&counter);
 	LONGLONG start = counter.QuadPart;
@@ -46,23 +54,43 @@ void sleep(size_t ms) {
 }
 
 
+void systime_now(struct timespec *ti) {
+  LONGLONG ticks_per_second = get_ticks_per_second();
+  if (ticks_per_second > 0) {
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+    LONGLONG qpc_value = now.QuadPart;
+    // Intentionally calculate microseconds in a round about manner to avoid
+    // overflow and precision issues. Think twice before simplifying!
+    LONGLONG whole_seconds = qpc_value / ticks_per_second;
+    LONGLONG leftover_ticks = qpc_value % ticks_per_second;
+    //LONGLONG microseconds = (whole_seconds * kMicrosecondsPerSecond) + ((leftover_ticks * kMicrosecondsPerSecond) / ticks_per_second);
+    ti->tv_sec = (long)whole_seconds;
+    ti->tv_nsec = (long)(leftover_ticks * kMicrosecondsPerSecond * 1000 / ticks_per_second);
+  }
+}
+
+
 int clock_gettime(int what, struct timespec *ti) {
-
+  
 	switch(what) {
-	case CLOCK_MONOTONIC:
-	case CLOCK_REALTIME:
-	case CLOCK_THREAD_CPUTIME_ID: {
-		LONGLONG freq = get_cpu_freq();
-		LARGE_INTEGER counter;
-		QueryPerformanceCounter(&counter);
-
-		ti->tv_sec = (long)counter.QuadPart / freq;
-		ti->tv_nsec = (counter.QuadPart / (freq / MICROSEC)) % MICROSEC;
-		return 0;
+  case CLOCK_REALTIME: {
+    //CLOCK_REALTIME:系统实时时间,随系统实时时间改变而改变,即从UTC1970-1-1 0:0:0开始计时。
+    systime_now(ti);
+    return 0;
+  }
+  case CLOCK_MONOTONIC: {
+    //CLOCK_MONOTONIC:从系统启动这一刻起开始计时, 不受系统时间被用户改变的影响。
+    systime_now(ti);
+    return 0;
+  }
+  case CLOCK_THREAD_CPUTIME_ID: {
+    // CLOCK_THREAD_CPUTIME_ID:本线程到当前代码系统CPU花费的时间
+    systime_now(ti);
+    return 0;
+  }
 	default:
 		__asm int 3;
-	}
-	break;
 	}
 	return -1;
 }
