@@ -35,6 +35,11 @@
 		"src/varint.h",
 		"src/wmessage.c",
 	  ],
+		'direct_dependent_settings': {
+			'include_dirs': [
+				'../pbc',
+			],
+		},
 	  'conditions': [
         ['OS=="win"', {
 		  'msvs_settings': {
@@ -63,7 +68,7 @@
 		'lua',
 		'../pbc/'
       ],
-	  #Ä¿±ê¹¤³ÌÔ´´úÂëÂ·¾¶
+	  #ç›®æ ‡å·¥ç¨‹æºä»£ç è·¯å¾„
       'sources': [
 		"binding/lua53/pbc-lua53.c",
 	  ],
