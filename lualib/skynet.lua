@@ -524,7 +524,7 @@ function skynet.uniqueservice(global, ...)
 	if global == true then
 		return assert(skynet.call(".service", "lua", "GLAUNCH", ...))
 	else
-		return assert(skynet.call(".service", "lua", "LAUNCH", global, ...))
+		return assert(skynet.call(".service", "lua", "LAUNCH", ...))
 	end
 end
 
@@ -532,7 +532,7 @@ function skynet.queryservice(global, ...)
 	if global == true then
 		return assert(skynet.call(".service", "lua", "GQUERY", ...))
 	else
-		return assert(skynet.call(".service", "lua", "QUERY", global, ...))
+		return assert(skynet.call(".service", "lua", "QUERY", ...))
 	end
 end
 
