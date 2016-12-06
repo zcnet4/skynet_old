@@ -623,11 +623,11 @@ char* _luaseri_pack_impl(lua_State* L, int from, int to, int* buf_size) {
 	}
 	//
 	assert(wb.head == &temp);
-  //[len][cmd][session][content]:包长度+命令+会话+内容。
-  int _buf_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + wb.len;
+  //[len][cmd][session][uid][content]:包长度+命令+会话+uid+内容。
+  int _buf_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + wb.len;
   char* buf = skynet_malloc(_buf_size);
   //
-  char* ptr = buf + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t);
+  char* ptr = buf + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t);
   int sz = wb.len;
   struct block* b = &temp;
 	while (sz > 0) {

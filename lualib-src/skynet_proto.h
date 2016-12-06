@@ -14,11 +14,13 @@ extern "C" {
 #endif
 
 typedef struct lua_State lua_State;
-int _skynet_proto_pack(lua_State* L);
-int _skynet_proto_unpack(lua_State *L);
+int skynet_proto_pack(lua_State* L);
+int skynet_proto_pack2(lua_State* L);
+int skynet_proto_unpack(lua_State *L);
+int skynet_proto_unpack2(lua_State *L);
 
-void _skynet_proto_pack_session(uint32_t session, unsigned char** buf, int* buf_size);
-void _skynet_proto_unpack_session(uint32_t* session, const unsigned char** buf, int* buf_size);
+void _skynet_proto_pack_header(const uint8_t** buf, uint16_t* buf_size, uint16_t cmd, uint32_t session, uint32_t uid);
+void _skynet_proto_unpack_header(const uint8_t** buf, uint16_t* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid);
 
 // return proto_buf
 unsigned char* _skynet_proto_pack_content(lua_State* L, int from, int to, int* buf_size);

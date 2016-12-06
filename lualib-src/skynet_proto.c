@@ -62,27 +62,32 @@ void proto_crypt(unsigned char* buf, uint32_t buf_size) {
   rc4_crypt(sbox, buf, buf_size);
 }
 
-void _skynet_proto_pack_session(uint32_t session, unsigned char** buf, int* buf_size) {
-  static uint16_t cmd = 0xFFFF;
-  memcpy(*buf, &cmd, sizeof(uint16_t));
+void _skynet_proto_pack_header(const uint8_t** buf, uint16_t* buf_size, uint16_t cmd, uint32_t session, uint32_t uid) {
+  *((uint16_t*)*buf) = htons(cmd);
   *buf += sizeof(uint16_t);
   *buf_size -= sizeof(uint16_t);
   //
-  uint32_t _session = htonl(session);
-  memcpy(*buf, &_session, sizeof(uint32_t));
+  *((uint32_t*)*buf) = htonl(session);
+  *buf += sizeof(uint32_t);
+  *buf_size -= sizeof(uint32_t);
+  //
+  *((uint32_t*)*buf) = htonl(uid);
   *buf += sizeof(uint32_t);
   *buf_size -= sizeof(uint32_t);
 }
 
-void _skynet_proto_unpack_session(uint32_t* session, const unsigned char** buf, int* buf_size) {
-  uint16_t _cmd = 0;
-  memcpy(&_cmd, *buf, sizeof(uint16_t));
+void _skynet_proto_unpack_header(const uint8_t** buf, uint16_t* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid) {
+  //[len][cmd][session][uid][content]:包长度 + 命令 + 会话 + uid + 内容。
+  //sizeof(uint16_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint32_t)
+  *cmd = ntohs(*((uint16_t*)*buf));
   (*buf) += sizeof(uint16_t);
   *buf_size -= sizeof(uint16_t);
   //
-  uint32_t _session = 0;
-  memcpy(&_session, *buf, sizeof(uint32_t));
-  *session = ntohl(_session);
+  *session = ntohl(*((uint32_t*)*buf));
+  (*buf) += sizeof(uint32_t);
+  *buf_size -= sizeof(uint32_t);
+  //
+  *uid = ntohl(*((uint32_t*)*buf));
   (*buf) += sizeof(uint32_t);
   *buf_size -= sizeof(uint32_t);
 }
@@ -102,8 +107,8 @@ static int _luaseri_pack_impl_protected(lua_State *L) {
 }
 
 unsigned char* _skynet_proto_content_offset(unsigned char* proto_buf, int proto_buf_size, int* proto_content_size) {
-  *proto_content_size = proto_buf_size - (sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t));
-  return (unsigned char*)proto_buf + (sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t));;
+  *proto_content_size = proto_buf_size - (sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t));
+  return (unsigned char*)proto_buf + (sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t));;
 }
 
 unsigned char* _skynet_proto_pack_content(lua_State* L, int from, int to, int* buf_size) {
@@ -120,7 +125,7 @@ unsigned char* _skynet_proto_pack_content(lua_State* L, int from, int to, int* b
   if (0 == lua_pcall(L, args, LUA_MULTRET, 0)) {
     proto_buf = lua_touserdata(L, -2);
     proto_buf_size = lua_tointeger(L, -1);
-    //[len][cmd][session][content]:包长度+命令+会话+内容。兼容chat协议。by ZC. 2016-5-12 10:43
+    //[len][cmd][session][uid][content]:包长度+命令+会话+uid+内容。by ZC. 2016-5-12 10:43
     // 写入内容长度。
     uint16_t content_size = htons(proto_buf_size - sizeof(uint16_t));
     memcpy(proto_buf, &content_size, sizeof(uint16_t));
@@ -129,7 +134,7 @@ unsigned char* _skynet_proto_pack_content(lua_State* L, int from, int to, int* b
     unsigned char* en_buf = _skynet_proto_content_offset(proto_buf, proto_buf_size, &en_buf_size);
     proto_crypt(en_buf, en_buf_size);
   } else {
-    proto_buf_size = 2 + 2 + 4;
+    proto_buf_size = 2 + 2 + 4 + 4;
     proto_buf = skynet_malloc(proto_buf_size);
   }
   lua_settop(L, top);
@@ -167,25 +172,58 @@ int _skynet_proto_unpack_content(lua_State* L, const unsigned char* buf, int buf
   return -1;
 }
 
-int _skynet_proto_pack(lua_State* L) {
-  uint32_t session = 0;
+int skynet_proto_pack(lua_State* L) {
+  uint16_t cmd = 0;
+  uint32_t session = 0, uid = 0;
   if (!lua_isnil(L, 1)) {
-    session = luaL_checkinteger(L, 1);
+    cmd = luaL_checkinteger(L, 1);
   }
+  if (!lua_isnil(L, 2))
+    session = luaL_checkinteger(L, 2);
+  if (!lua_isnil(L, 3))
+    uid = luaL_checkinteger(L, 3);
   //
   int proto_buf_size = 0;
-  unsigned char* proto_buf = _skynet_proto_pack_content(L, 1, lua_gettop(L), &proto_buf_size);
+  unsigned char* proto_buf = _skynet_proto_pack_content(L, 3, lua_gettop(L), &proto_buf_size);
 	//
   int buf_size = proto_buf_size - sizeof(uint16_t);
   unsigned char* buf = proto_buf + sizeof(uint16_t);
-  _skynet_proto_pack_session(session, &buf, &buf_size);
+  _skynet_proto_pack_header(&buf, &buf_size, cmd, session, uid);
 	//
   lua_pushlightuserdata(L, proto_buf);
 	lua_pushinteger(L, proto_buf_size);
 	return 2;
 }
 
-int _skynet_proto_unpack(lua_State *L) {
+int skynet_proto_pack2(lua_State* L) {
+  uint16_t cmd = 0;
+  uint32_t session = 0, uid = 0;
+  if (!lua_isnil(L, 1)) {
+    cmd = luaL_checkinteger(L, 1);
+  }
+  if (!lua_isnil(L, 2))
+    session = luaL_checkinteger(L, 2);
+  if (!lua_isnil(L, 3))
+    uid = luaL_checkinteger(L, 3);
+  //
+  size_t sz = 0;
+  char* str = luaL_checklstring(L, 4, &sz);
+  //
+  int proto_buf_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sz;
+  unsigned char* proto_buf = skynet_malloc(proto_buf_size);
+  //
+  int buf_size = proto_buf_size - sizeof(uint16_t);
+  unsigned char* buf = proto_buf + sizeof(uint16_t);
+  _skynet_proto_pack_header(&buf, &buf_size, cmd, session, uid);
+  memcpy(buf, str, sz);
+  //
+  lua_pushlightuserdata(L, proto_buf);
+  lua_pushinteger(L, proto_buf_size);
+  return 2;
+}
+
+
+int skynet_proto_unpack(lua_State *L) {
   if (lua_isnoneornil(L, 1)) {
     return 0;
   }
@@ -208,19 +246,58 @@ int _skynet_proto_unpack(lua_State *L) {
   //
   lua_settop(L, 1);
   //
-  uint32_t session = 0;
-  _skynet_proto_unpack_session(&session, &buf, &buf_size);
+  uint16_t cmd = 0;
+  uint32_t session = 0, uid = 0;
+  _skynet_proto_unpack_header(&buf, &buf_size, &cmd, &session, &uid);
+  lua_pushinteger(L, cmd);
   lua_pushinteger(L, session);
+  lua_pushinteger(L, uid);
   if (buf_size > 0) {
     int args = _skynet_proto_unpack_content(L, buf, buf_size);
     if (args < 0) {
-      lua_settop(L, 2);
+      lua_settop(L, 4);
     }
   }
   //
   return lua_gettop(L) - 1;
 }
 
+
+int skynet_proto_unpack2(lua_State *L) {
+  if (lua_isnoneornil(L, 1)) {
+    return 0;
+  }
+  const unsigned char * buf;
+  int buf_size;
+  if (lua_type(L, 1) == LUA_TSTRING) {
+    size_t sz;
+    buf = (const unsigned char *)lua_tolstring(L, 1, &sz);
+    buf_size = (int)sz;
+  } else {
+    buf = (const unsigned char *)lua_touserdata(L, 1);
+    buf_size = luaL_checkinteger(L, 2);
+  }
+  if (buf == NULL) {
+    return luaL_error(L, "deserialize null pointer");
+  }
+  if (buf_size < sizeof(uint32_t)) {
+    return 0;
+  }
+  //
+  lua_settop(L, 1);
+  //
+  uint16_t cmd = 0;
+  uint32_t session = 0, uid = 0;
+  _skynet_proto_unpack_header(&buf, &buf_size, &cmd, &session, &uid);
+  lua_pushinteger(L, cmd);
+  lua_pushinteger(L, session);
+  lua_pushinteger(L, uid);
+  if (buf_size > 0) {
+    lua_pushlstring(L, buf, buf_size);
+  }
+  //
+  return lua_gettop(L) - 1;
+}
 
 static unsigned char auth_key[] = "fe3f88fa709e949f6455f335cce141b75f";
 #define _RANDOM_SIZE 8
@@ -252,7 +329,7 @@ unsigned char* _skynet_proto_gen_auth(lua_State* L, int* auth_size) {
   //
   int buf_size = proto_buf_size - sizeof(uint16_t);
   unsigned char* buf = proto_buf + sizeof(uint16_t);
-  _skynet_proto_pack_session(0x80000000, &buf, &buf_size);
+  //_skynet_proto_pack_header(0x80000000, &buf, &buf_size);
   //
   lua_settop(L, top);
   //
@@ -265,7 +342,7 @@ int _skynet_proto_auth(lua_State* L) {
 #define _FAILED(err_msg) { lua_settop(L, top); lua_pushboolean(L, 0); lua_writestringerror("%s", err_msg);return 1; }
   int top = lua_gettop(L);
   //
-  int n = _skynet_proto_unpack(L);
+  int n = skynet_proto_unpack(L);
   if (3 != n) _FAILED("auth:1");
   //
   uint32_t session = lua_tointeger(L, top + 1);
