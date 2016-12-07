@@ -123,12 +123,8 @@ unsigned char* _skynet_proto_pack_content(lua_State* L, int from, int to, int* b
   lua_pushinteger(L, to - from);        // 新增个参数指明pack的个数。
   int args = lua_gettop(L) - (from + 1);
   if (0 == lua_pcall(L, args, LUA_MULTRET, 0)) {
-    proto_buf = lua_touserdata(L, -2);
     proto_buf_size = lua_tointeger(L, -1);
-    //[len][cmd][session][uid][content]:包长度+命令+会话+uid+内容。by ZC. 2016-5-12 10:43
-    // 写入内容长度。
-    uint16_t content_size = htons(proto_buf_size - sizeof(uint16_t));
-    memcpy(proto_buf, &content_size, sizeof(uint16_t));
+    proto_buf = lua_touserdata(L, -2);
     // 只加密内容。
     int en_buf_size = 0;
     unsigned char* en_buf = _skynet_proto_content_offset(proto_buf, proto_buf_size, &en_buf_size);
@@ -137,6 +133,7 @@ unsigned char* _skynet_proto_pack_content(lua_State* L, int from, int to, int* b
     proto_buf_size = 2 + 2 + 4 + 4;
     proto_buf = skynet_malloc(proto_buf_size);
   }
+  //
   lua_settop(L, top);
   //
   *buf_size = proto_buf_size;
@@ -188,6 +185,9 @@ int skynet_proto_pack(lua_State* L) {
 	//
   int buf_size = proto_buf_size - sizeof(uint16_t);
   unsigned char* buf = proto_buf + sizeof(uint16_t);
+  //[len]
+  *((uint16_t*)proto_buf) = htons(buf_size);
+  //[cmd][session][uid][content]
   _skynet_proto_pack_header(&buf, &buf_size, cmd, session, uid);
 	//
   lua_pushlightuserdata(L, proto_buf);
@@ -201,21 +201,27 @@ int skynet_proto_pack2(lua_State* L) {
   if (!lua_isnil(L, 1)) {
     cmd = luaL_checkinteger(L, 1);
   }
-  if (!lua_isnil(L, 2))
+  if (!lua_isnoneornil(L, 2))
     session = luaL_checkinteger(L, 2);
-  if (!lua_isnil(L, 3))
+  if (!lua_isnoneornil(L, 3))
     uid = luaL_checkinteger(L, 3);
   //
   size_t sz = 0;
-  char* str = luaL_checklstring(L, 4, &sz);
+  char* str = NULL;
+  if (!lua_isnoneornil(L, 4))
+    str = luaL_checklstring(L, 4, &sz);
   //
   int proto_buf_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sz;
   unsigned char* proto_buf = skynet_malloc(proto_buf_size);
   //
   int buf_size = proto_buf_size - sizeof(uint16_t);
   unsigned char* buf = proto_buf + sizeof(uint16_t);
+  //[len]
+  *((uint16_t*)proto_buf) = htons(buf_size);
+  //[cmd][session][uid][content]
   _skynet_proto_pack_header(&buf, &buf_size, cmd, session, uid);
-  memcpy(buf, str, sz);
+  if (sz > 0)
+    memcpy(buf, str, sz);
   //
   lua_pushlightuserdata(L, proto_buf);
   lua_pushinteger(L, proto_buf_size);
@@ -302,91 +308,91 @@ int skynet_proto_unpack2(lua_State *L) {
 static unsigned char auth_key[] = "fe3f88fa709e949f6455f335cce141b75f";
 #define _RANDOM_SIZE 8
 
-unsigned char* _skynet_proto_gen_auth(lua_State* L, int* auth_size) {
-  int top = lua_gettop(L);
-  //
-  unsigned char random_key[_RANDOM_SIZE] = { 0 };
-  int i;
-  char x = 0;
-  for (i = 0; i < _RANDOM_SIZE; ++i) {
-    random_key[i] = random() & 0xFF;
-    x ^= random_key[i];
-  }
-  if (x == 0) {
-    random_key[0] |= 1;	// avoid 0
-  }
-  lua_pushlstring(L, (char*)random_key, _RANDOM_SIZE);
-  //
-  unsigned char auth_buf[_RANDOM_SIZE] = { 0 };
-  memcpy(auth_buf, random_key, _RANDOM_SIZE);
-  unsigned char sbox[KEY_SIZE] = { 0 };
-  rc4_init(sbox, auth_key, sizeof(auth_key));
-  rc4_crypt(sbox, auth_buf, _RANDOM_SIZE);
-  lua_pushlstring(L, (char*)auth_buf, _RANDOM_SIZE);
-  //
-  int proto_buf_size = 0;
-  unsigned char* proto_buf = _skynet_proto_pack_content(L, top, lua_gettop(L), &proto_buf_size);
-  //
-  int buf_size = proto_buf_size - sizeof(uint16_t);
-  unsigned char* buf = proto_buf + sizeof(uint16_t);
-  //_skynet_proto_pack_header(0x80000000, &buf, &buf_size);
-  //
-  lua_settop(L, top);
-  //
-  *auth_size = proto_buf_size;
-  return proto_buf;
-}
-
-
-int _skynet_proto_auth(lua_State* L) {
-#define _FAILED(err_msg) { lua_settop(L, top); lua_pushboolean(L, 0); lua_writestringerror("%s", err_msg);return 1; }
-  int top = lua_gettop(L);
-  //
-  int n = skynet_proto_unpack(L);
-  if (3 != n) _FAILED("auth:1");
-  //
-  uint32_t session = lua_tointeger(L, top + 1);
-  if ((session & 0x80000000) != 0x80000000) _FAILED("auth:2");
-  //
-  size_t random_key_size = 0;
-  const unsigned char* random_key = (const unsigned char*)lua_tolstring(L, top + 2, &random_key_size);
-  if (_RANDOM_SIZE != random_key_size) _FAILED("auth:3");
-  //
-  size_t auth_size = 0;
-  const unsigned char* auth = (const unsigned char*)lua_tolstring(L, top + 3, &auth_size);
-  if (_RANDOM_SIZE != auth_size) _FAILED("auth:4");
-  //
-  unsigned char auth_decrypt[_RANDOM_SIZE] = { 0 };
-  memcpy(auth_decrypt, auth, _RANDOM_SIZE);
-  unsigned char sbox[KEY_SIZE] = { 0 };
-  rc4_init(sbox, auth_key, sizeof(auth_key));
-  rc4_crypt(sbox, auth_decrypt, _RANDOM_SIZE);
-
-  int ret = memcmp(random_key, auth_decrypt, _RANDOM_SIZE);
-  lua_settop(L, top);
-  lua_pushboolean(L, !ret);
-  //
-  return 1;
-}
-
-int _skynet_proto_tochat(lua_State* L) {
-  if (lua_isnoneornil(L, 1)) {
-    return 0;
-  }
-  char * buf = (char *)lua_touserdata(L, 1);
-  int buf_size = luaL_checkinteger(L, 2);
-  if (buf == NULL) {
-    return luaL_error(L, "_skynet_proto_to_chat");
-  }
-  uint16_t  len = ntohs(*(uint16_t*)buf);
-  memcpy((void*)buf, &len, sizeof(uint16_t));
-  //
-  uint16_t* cmd = ((uint16_t*)buf) + 1;
-  *cmd = lua_tointeger(L, 3);
-  //
-  lua_pushlstring(L, (const char*)buf, buf_size);
-  skynet_free(buf);
-  return 1;
-}
+//unsigned char* _skynet_proto_gen_auth(lua_State* L, int* auth_size) {
+//  int top = lua_gettop(L);
+//  //
+//  unsigned char random_key[_RANDOM_SIZE] = { 0 };
+//  int i;
+//  char x = 0;
+//  for (i = 0; i < _RANDOM_SIZE; ++i) {
+//    random_key[i] = random() & 0xFF;
+//    x ^= random_key[i];
+//  }
+//  if (x == 0) {
+//    random_key[0] |= 1;	// avoid 0
+//  }
+//  lua_pushlstring(L, (char*)random_key, _RANDOM_SIZE);
+//  //
+//  unsigned char auth_buf[_RANDOM_SIZE] = { 0 };
+//  memcpy(auth_buf, random_key, _RANDOM_SIZE);
+//  unsigned char sbox[KEY_SIZE] = { 0 };
+//  rc4_init(sbox, auth_key, sizeof(auth_key));
+//  rc4_crypt(sbox, auth_buf, _RANDOM_SIZE);
+//  lua_pushlstring(L, (char*)auth_buf, _RANDOM_SIZE);
+//  //
+//  int proto_buf_size = 0;
+//  unsigned char* proto_buf = _skynet_proto_pack_content(L, top, lua_gettop(L), &proto_buf_size);
+//  //
+//  int buf_size = proto_buf_size - sizeof(uint16_t);
+//  unsigned char* buf = proto_buf + sizeof(uint16_t);
+//  //_skynet_proto_pack_header(0x80000000, &buf, &buf_size);
+//  //
+//  lua_settop(L, top);
+//  //
+//  *auth_size = proto_buf_size;
+//  return proto_buf;
+//}
+//
+//
+//int _skynet_proto_auth(lua_State* L) {
+//#define _FAILED(err_msg) { lua_settop(L, top); lua_pushboolean(L, 0); lua_writestringerror("%s", err_msg);return 1; }
+//  int top = lua_gettop(L);
+//  //
+//  int n = skynet_proto_unpack(L);
+//  if (3 != n) _FAILED("auth:1");
+//  //
+//  uint32_t session = lua_tointeger(L, top + 1);
+//  if ((session & 0x80000000) != 0x80000000) _FAILED("auth:2");
+//  //
+//  size_t random_key_size = 0;
+//  const unsigned char* random_key = (const unsigned char*)lua_tolstring(L, top + 2, &random_key_size);
+//  if (_RANDOM_SIZE != random_key_size) _FAILED("auth:3");
+//  //
+//  size_t auth_size = 0;
+//  const unsigned char* auth = (const unsigned char*)lua_tolstring(L, top + 3, &auth_size);
+//  if (_RANDOM_SIZE != auth_size) _FAILED("auth:4");
+//  //
+//  unsigned char auth_decrypt[_RANDOM_SIZE] = { 0 };
+//  memcpy(auth_decrypt, auth, _RANDOM_SIZE);
+//  unsigned char sbox[KEY_SIZE] = { 0 };
+//  rc4_init(sbox, auth_key, sizeof(auth_key));
+//  rc4_crypt(sbox, auth_decrypt, _RANDOM_SIZE);
+//
+//  int ret = memcmp(random_key, auth_decrypt, _RANDOM_SIZE);
+//  lua_settop(L, top);
+//  lua_pushboolean(L, !ret);
+//  //
+//  return 1;
+//}
+//
+//int _skynet_proto_tochat(lua_State* L) {
+//  if (lua_isnoneornil(L, 1)) {
+//    return 0;
+//  }
+//  char * buf = (char *)lua_touserdata(L, 1);
+//  int buf_size = luaL_checkinteger(L, 2);
+//  if (buf == NULL) {
+//    return luaL_error(L, "_skynet_proto_to_chat");
+//  }
+//  uint16_t  len = ntohs(*(uint16_t*)buf);
+//  memcpy((void*)buf, &len, sizeof(uint16_t));
+//  //
+//  uint16_t* cmd = ((uint16_t*)buf) + 1;
+//  *cmd = lua_tointeger(L, 3);
+//  //
+//  lua_pushlstring(L, (const char*)buf, buf_size);
+//  skynet_free(buf);
+//  return 1;
+//}
 
 // -------------------------------------------------------------------------

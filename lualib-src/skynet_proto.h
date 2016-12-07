@@ -26,11 +26,7 @@ void _skynet_proto_unpack_header(const uint8_t** buf, uint16_t* buf_size, uint16
 unsigned char* _skynet_proto_pack_content(lua_State* L, int from, int to, int* buf_size);
 int _skynet_proto_unpack_content(lua_State* L, const unsigned char* buf, int buf_size);
 
-unsigned char* _skynet_proto_gen_auth(lua_State* L, int* auth_size);
-int _skynet_proto_auth(lua_State* L);
-
 unsigned char* _skynet_proto_content_offset(unsigned char* proto_buf, int proto_buf_size, int* proto_content_size);
-int _skynet_proto_tochat(lua_State* L);
 #ifdef __cplusplus
 }
 #endif

@@ -372,8 +372,6 @@ luaopen_skynet_core(lua_State *L) {
     { "proto_pack2", skynet_proto_pack2 },
     { "proto_unpack", skynet_proto_unpack },
     { "proto_unpack2", skynet_proto_unpack2 },
-    { "proto_tochat", _skynet_proto_tochat },
-    { "proto_auth", _skynet_proto_auth },
 		{ "trash" , ltrash },
 		{ "callback", lcallback },
 		{ "now", lnow },
