@@ -1,8 +1,8 @@
-/* -------------------------------------------------------------------------
-//	FileName		£º	D:\yy_code\strife\trunk\src\ChatServer\src\skynet_proto.h
-//	Creator			£º	(zc) <zcnet4@gmail.com>
-//	CreateTime	£º	2016-4-8 14:10
-//	Description	£º	
+ï»¿/* -------------------------------------------------------------------------
+//	FileName		ï¼š	D:\yy_code\strife\trunk\src\ChatServer\src\skynet_proto.h
+//	Creator			ï¼š	(zc) <zcnet4@gmail.com>
+//	CreateTime	ï¼š	2016-4-8 14:10
+//	Description	ï¼š	
 //
 // -----------------------------------------------------------------------*/
 #ifndef SKYNET_PROTO_H_
