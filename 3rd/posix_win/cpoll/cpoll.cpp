@@ -1,20 +1,20 @@
 /*
-  cpoll - copyright 2009 by Dan "Heron" Myers (heronblademastr)
-  cpoll is released under the LGPL 3, which can be obtained at this
-  URL: http://www.gnu.org/copyleft/lesser.html
-  In Linux, cpoll transparently passes through to epoll; there should
-  be no performance impact.
-  In Windows, cpoll requires that you link with a DLL for the required
-  functionality (which is why it's LGPL, not GPL).
-  http://sourceforge.net/projects/cpoll/
+cpoll - copyright 2009 by Dan "Heron" Myers (heronblademastr)
+cpoll is released under the LGPL 3, which can be obtained at this
+URL: http://www.gnu.org/copyleft/lesser.html
+In Linux, cpoll transparently passes through to epoll; there should
+be no performance impact.
+In Windows, cpoll requires that you link with a DLL for the required
+functionality (which is why it's LGPL, not GPL).
+http://sourceforge.net/projects/cpoll/
 
-  Usage:
-  In Linux, do not use this file!  cpoll.h contains all you need.
-  In Windows, inlude cpoll.h, and link with cpoll.lib.  Put cpoll.dll
-  in your program executable's directory.  You must #define WIN32.
-  Do not compile this file into your program, especially if your
-  program is not LGPL-compatible!  You're better off using the DLL.
-  */
+Usage:
+In Linux, do not use this file!  cpoll.h contains all you need.
+In Windows, inlude cpoll.h, and link with cpoll.lib.  Put cpoll.dll
+in your program executable's directory.  You must #define WIN32.
+Do not compile this file into your program, especially if your
+program is not LGPL-compatible!  You're better off using the DLL.
+*/
 
 #include "cpoll.h"
 
@@ -24,19 +24,6 @@
 #include <errno.h>
 #include <map>
 #include <vector>
-
-struct fd_t
-{
-  int fd;
-  struct cpoll_event event;
-  HANDLE wsa_event;
-
-  fd_t() {
-  }
-
-  ~fd_t() {
-  }
-};
 
 struct cs_t
 {
@@ -79,12 +66,23 @@ struct lock_t {
 
 cs_t cs;
 #define GUARD()\
-	lock_t lock(cs);
+lock_t lock(cs);
 
-typedef std::vector<fd_t> cp_internal;
+struct fd_t {
+  int fd;
+  struct cpoll_event event;
+};
+typedef std::vector<fd_t> fds_t;
 
-int cp_next_id;
-std::map<int, cp_internal> cp_data;
+struct cp_internal {
+  size_t    max_size;
+  fds_t     fds;
+  size_t    wsa_events_offset;
+  WSAEVENT  wsa_events[1024];
+};
+
+static int cp_next_id;
+static std::map<int, cp_internal> cp_data;
 
 long get_wsa_mask(unsigned int cpoll_events)
 {
@@ -143,7 +141,7 @@ int cpoll_create(int size)
   GUARD();
   // maintaining error condition for compatibility
   // however, this parameter is ignored.
-  if (size < 0)
+  if (size < 0 || size > _countof(((cp_internal*)0)->wsa_events))
     return EINVAL;
 
   ++cp_next_id;
@@ -164,31 +162,36 @@ int cpoll_create(int size)
     return ENFILE;
   }
 
-  cp_data[cp_next_id] = cp_internal();
+  cp_internal& cpi = cp_data[cp_next_id];
+  cpi.fds.clear();
+  cpi.max_size = size;
+  cpi.wsa_events_offset = 0;
+  memset(cpi.wsa_events, 0, sizeof(cpi.wsa_events));
+  //
   return cp_next_id;
 }
 
 /*
-    EPOLL_CTL_ADD
-    Add the target file descriptor fd to the epoll descriptor epfd and associate the event event with the internal file linked to fd.
-    EPOLL_CTL_MOD
-    Change the event event associated with the target file descriptor fd.
-    EPOLL_CTL_DEL
-    Remove the target file descriptor fd from the epoll file descriptor, epfd. The event is ignored and can be NULL (but see BUGS below).
-    Errors:
-    EBADF
-    cpfd or fd is not a valid file descriptor.
-    EEXIST
-    op was EPOLL_CTL_ADD, and the supplied file descriptor fd is already in cpfd.
-    EINVAL
-    cpfd is not an epoll file descriptor, or fd is the same as cpfd, or the requested operation op is not supported by this interface.
-    ENOENT
-    op was EPOLL_CTL_MOD or EPOLL_CTL_DEL, and fd is not in cpfd.
-    ENOMEM
-    There was insufficient memory to handle the requested op control operation.
-    EPERM
-    The target file fd does not support epoll.
-    */
+EPOLL_CTL_ADD
+Add the target file descriptor fd to the epoll descriptor epfd and associate the event event with the internal file linked to fd.
+EPOLL_CTL_MOD
+Change the event event associated with the target file descriptor fd.
+EPOLL_CTL_DEL
+Remove the target file descriptor fd from the epoll file descriptor, epfd. The event is ignored and can be NULL (but see BUGS below).
+Errors:
+EBADF
+cpfd or fd is not a valid file descriptor.
+EEXIST
+op was EPOLL_CTL_ADD, and the supplied file descriptor fd is already in cpfd.
+EINVAL
+cpfd is not an epoll file descriptor, or fd is the same as cpfd, or the requested operation op is not supported by this interface.
+ENOENT
+op was EPOLL_CTL_MOD or EPOLL_CTL_DEL, and fd is not in cpfd.
+ENOMEM
+There was insufficient memory to handle the requested op control operation.
+EPERM
+The target file fd does not support epoll.
+*/
 int cpoll_ctl(int cpfd, int opcode, int fd, struct cpoll_event* event)
 {
   GUARD();
@@ -199,47 +202,54 @@ int cpoll_ctl(int cpfd, int opcode, int fd, struct cpoll_event* event)
   // descriptor.  If so, make sure it is; if not, set EPERM and return -1.
 
   cp_internal& cpi = cp_data[cpfd];
-
+  fds_t& fds = cpi.fds;
+  //
   if (opcode == CPOLL_CTL_ADD) {
-
-    for (cp_internal::size_type i = 0; i < cpi.size(); ++i) {
-      if (cpi[i].fd == fd)
+    for (fds_t::size_type i = 0; i < fds.size(); ++i) {
+      if (fds[i].fd == fd)
         return EEXIST;
     }
-
+    // 满了。by ZC.
+    if (fds.size() >= cpi.max_size)
+      return ENOMEM;
+    //
     fd_t f;
     f.fd = fd;
     f.event = *event;
-    f.wsa_event = WSACreateEvent();
     f.event.events |= CPOLLHUP;
     f.event.events |= CPOLLERR;
-    WSAEventSelect(f.fd, f.wsa_event, FD_ACCEPT | FD_CLOSE | get_wsa_mask(f.event.events));
-    cpi.push_back(f);
+    size_t index = fds.size();
+    cpi.wsa_events[index] = WSACreateEvent();
+    WSAEventSelect(f.fd, cpi.wsa_events[index], FD_ACCEPT | FD_CLOSE | get_wsa_mask(f.event.events));
+    fds.push_back(f);
     return 0;
   } else if (opcode == CPOLL_CTL_MOD) {
 
-    for (cp_internal::size_type i = 0; i < cpi.size(); ++i) {
+    for (fds_t::size_type i = 0; i < fds.size(); ++i) {
 
-      if (cpi[i].fd == fd) {
+      if (fds[i].fd == fd) {
 
-        cpi[i].event = *event;
-        cpi[i].event.events |= CPOLLHUP;
-        cpi[i].event.events |= CPOLLERR;
-        WSAEventSelect(cpi[i].fd, cpi[i].wsa_event, FD_ACCEPT | get_wsa_mask(cpi[i].event.events));
+        fds[i].event = *event;
+        fds[i].event.events |= CPOLLHUP;
+        fds[i].event.events |= CPOLLERR;
+        WSAEventSelect(fds[i].fd, cpi.wsa_events[i], FD_ACCEPT | get_wsa_mask(fds[i].event.events));
         return 0;
       }
     }
     return ENOENT;
   } else if (opcode == CPOLL_CTL_DEL) {
 
-    for (cp_internal::iterator itr = cpi.begin(); itr != cpi.end(); ++itr) {
+    for (fds_t::size_type i = 0; i < fds.size(); ++i) {
 
-      if (itr->fd == fd) {
+      if (fds[i].fd == fd) {
         // now unset the event notifications
-        WSAEventSelect(itr->fd, 0, 0);
+        WSAEventSelect(fd, 0, 0);
         // clean up event
-        WSACloseEvent(itr->wsa_event);
-        cpi.erase(itr);
+        WSACloseEvent(cpi.wsa_events[i]);
+        fds.erase(fds.begin() + i);
+        int count = fds.size() - i;
+        if (count > 0 && i < fds.size())
+          memmove(cpi.wsa_events + i, cpi.wsa_events + i + 1, count * sizeof(WSAEVENT));
         return 0;
       }
     }
@@ -256,25 +266,39 @@ int cpoll_wait(int cpfd, struct cpoll_event* events, int maxevents, int timeout)
     return -1;
 
   cp_internal& cpi = cp_data[cpfd];
-
-  WSAEVENT wsa_events[WSA_MAXIMUM_WAIT_EVENTS] = { 0 };
-  for (cp_internal::size_type i = 0; i < cpi.size(); ++i)
-    wsa_events[i] = cpi[i].wsa_event;
+  fds_t& fds = cpi.fds;
+  //
+  /*WSAEVENT wsa_events[WSA_MAXIMUM_WAIT_EVENTS] = { 0 };
+  for (fds_t::size_type i = 0; i < fds.size(); ++i)
+  wsa_events[i] = cpi.wsa_events[i];*/
   //  
   int num_ready = 0;
   DWORD wsa_result = 0;
+  WSAEVENT* wsaevent_buf = nullptr;
+  DWORD  wsaevent_buf_size = 0;
   for (;;) {
-    wsa_result = WSAWaitForMultipleEvents(cpi.size(), wsa_events, FALSE, 13, FALSE);
-    if (wsa_result != WSA_WAIT_TIMEOUT)
+    wsaevent_buf_size = fds.size() - cpi.wsa_events_offset;
+    if (wsaevent_buf_size > WSA_MAXIMUM_WAIT_EVENTS) 
+      wsaevent_buf_size = WSA_MAXIMUM_WAIT_EVENTS;
+    //
+    wsaevent_buf = cpi.wsa_events + cpi.wsa_events_offset;
+    wsa_result = WSAWaitForMultipleEvents(wsaevent_buf_size, wsaevent_buf, FALSE, 13, FALSE);
+    cpi.wsa_events_offset += wsaevent_buf_size;
+    if (fds.size() >= cpi.wsa_events_offset) 
+      cpi.wsa_events_offset = 0;
+    // 超时则继续等待。by ZC. 2016-12-13 10:09
+    if (wsa_result != WSA_WAIT_TIMEOUT) {
+      //WSAWaitForMultipleEvents(1, wsaevent_buf, FALSE, 0, FALSE);
       break;
+    }
     if (_kbhit()) {
       // console input handle
       cpoll_event& ev = events[num_ready++];
       ev.data.ptr = NULL;
       ev.events = FD_READ;
-      for (size_t i = 0; i < cpi.size(); i++) {
-        if (cpi[i].fd == 0) {
-          ev.data.ptr = cpi[i].event.data.ptr;
+      for (size_t i = 0; i < fds.size(); i++) {
+        if (fds[i].fd == 0) {
+          ev.data.ptr = fds[i].event.data.ptr;
           break;
         }
       }
@@ -289,12 +313,11 @@ int cpoll_wait(int cpfd, struct cpoll_event* events, int maxevents, int timeout)
   if (wsa_result != WSA_WAIT_TIMEOUT) {
 
     int e = wsa_result - WSA_WAIT_EVENT_0;
-    for (cp_internal::size_type i = e; i < cpi.size() && num_ready < maxevents; ++i) {
-      WSANETWORKEVENTS network_event;
-      if (WSAEnumNetworkEvents(cpi[i].fd, wsa_events[i], &network_event) != 0) {
-
+    for (fds_t::size_type i = e; i < wsaevent_buf_size && num_ready < maxevents; ++i) {
+      WSANETWORKEVENTS network_event = { 0 };
+      if (WSAEnumNetworkEvents(fds[i].fd, wsaevent_buf[i], &network_event) != 0) {
         // ignore stdin handle
-        if (cpi[i].fd == 0)
+        if (fds[i].fd == 0)
           continue;
         // error?
         return -1;
@@ -302,17 +325,17 @@ int cpoll_wait(int cpfd, struct cpoll_event* events, int maxevents, int timeout)
 
       cpoll_event& ev = events[num_ready++];
       if (network_event.lNetworkEvents != 0) {
-
-        if (cpi[i].event.events & CPOLLONESHOT)
-          cpi[i].event.events = 0;
-
+        if (fds[i].event.events & CPOLLONESHOT)
+          fds[i].event.events = 0;
         ev.events = (network_event.lNetworkEvents & FD_ACCEPT) ? FD_CONNECT : 0;
         ev.events |= (network_event.lNetworkEvents & FD_CLOSE) ? (FD_CLOSE | FD_READ) : 0;
+
         if (network_event.lNetworkEvents & FD_READ)
           ev.events |= get_cp_mask(&network_event);
         else if (network_event.lNetworkEvents & FD_WRITE)
           ev.events |= get_cp_mask(&network_event);
-        ev.data.ptr = cpi[i].event.data.ptr;
+        ev.data.ptr = fds[i].event.data.ptr;
+
       } else {
         // empty event? add an dummy event
         ev.events = 0;
@@ -330,12 +353,14 @@ int cpoll_close(int cpfd)
     return ENOENT;
 
   cp_internal& cpi = cp_data[cpfd];
-  for (cp_internal::size_type i = 0; i < cpi.size(); ++i) {
+  fds_t& fds = cpi.fds;
+
+  for (fds_t::size_type i = 0; i < fds.size(); ++i) {
 
     // now unset the event notifications
-    WSAEventSelect(cpi[i].fd, 0, 0);
+    WSAEventSelect(fds[i].fd, 0, 0);
     // clean up event
-    WSACloseEvent(cpi[i].wsa_event);
+    WSACloseEvent(cpi.wsa_events[i]);
   }
   cp_data.erase(cpfd);
   return 0;
