@@ -90,7 +90,7 @@
 			'dependencies': [	
 				'3rd/3rd.gyp:posix_win',
 			],
-			'msvs_postbuild': r'copy "$(ProjectDir)\\3rd\\pthreadVCE2.dll" "<(DEPTH)\\$(ConfigurationName)\\pthreadVCE2.dll"',
+			'msvs_postbuild': r'copy "$(ProjectDir)\\3rd\\pthreadVCE2.dll" "<(DEPTH)\\build\\$(ConfigurationName)\\pthreadVCE2.dll"',
         }, { # OS != "win",
           'defines': [
             
