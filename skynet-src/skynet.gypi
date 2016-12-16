@@ -91,9 +91,6 @@
 			],
 			'msvs_postbuild': r'copy "$(ProjectDir)\\3rd\\pthreadVCE2.dll" "<(DEPTH)\\build\\$(ConfigurationName)\\pthreadVCE2.dll"',
         }, { # OS != "win",
-          'include_dirs': [
-			"../3rd/jemalloc/include"
-		   ],
 		  'scons_variable_settings': {'SHLIBPREFIX':'lib',},
         }]
       ],

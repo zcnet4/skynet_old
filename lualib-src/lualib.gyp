@@ -60,9 +60,9 @@
 			"memory.def",
 		  ],
         }, { # OS != "win",
-          'defines': [
-            
-          ],
+          'include_dirs': [
+			"../3rd/jemalloc/include"
+		   ],
         }]
       ],
     },
