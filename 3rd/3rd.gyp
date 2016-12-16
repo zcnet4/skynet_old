@@ -9,6 +9,7 @@
 {
   'variables': {
     'chromium_code': 1,  # Use higher warning level.
+	'c99':1,
   },
   'target_defaults': {
     'conditions': [
@@ -143,10 +144,8 @@
 			'-lm',
 		  ],
 		  'scons_variable_settings': {'SHLIBPREFIX':'lib',},
-		  'cflags_cc': [ '-std=gnu99' ],
-        }
-		]
-    ],
+        }]
+      ],
     },
 	{
       'target_name': 'md5',
