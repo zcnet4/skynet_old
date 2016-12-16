@@ -3,26 +3,25 @@
 {
   'targets': [
     {
-	  # 目标工程名
       'target_name': 'skynet',
       'type': 'shared_library',
-	  # 目标工程依赖工程
       'dependencies': [
 		'3rd/3rd.gyp:lua',
+		'lualib-src/lualib.gyp:memory',
 		'lualib-src/lualib.gyp:*',
       ],
-	  #目标工程预处理宏定义
+	  'export_dependent_settings': [  
+        #'lualib-src/lualib.gyp:memory',
+      ],
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'.'
       ],
-	  #目标工程源代码路径
       'sources': [
 		"atomic.h",
-		"malloc_hook.h",
-		"malloc_hook.c",
+		#"malloc_hook.h",
+		#"malloc_hook.c",
 		"rwlock.h",
 		"skynet.h",
 		"skynet_daemon.h",
@@ -67,7 +66,7 @@
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"skynet.def",
@@ -92,34 +91,31 @@
 			],
 			'msvs_postbuild': r'copy "$(ProjectDir)\\3rd\\pthreadVCE2.dll" "<(DEPTH)\\build\\$(ConfigurationName)\\pthreadVCE2.dll"',
         }, { # OS != "win",
-          'defines': [
-            
-          ],
+          'include_dirs': [
+			"../3rd/jemalloc/include"
+		   ],
 		  'scons_variable_settings': {'SHLIBPREFIX':'lib',},
         }]
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'snlua',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
+		'lualib-src/lualib.gyp:memory',
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'.'
       ],
-	  #目标工程源代码路径
       'sources': [
 		"../service-src/service_snlua.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"../service-src/snlua.def",
@@ -132,26 +128,23 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'logger',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
+		'lualib-src/lualib.gyp:memory',
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'.'
       ],
-	  #目标工程源代码路径
       'sources': [
 		"../service-src/service_logger.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"../service-src/logger.def",
@@ -164,26 +157,23 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'harbor',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
+		'lualib-src/lualib.gyp:memory',
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'.'
       ],
-	  #目标工程源代码路径
       'sources': [
 		"../service-src/service_harbor.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"../service-src/harbor.def",
@@ -196,26 +186,23 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'harbor2',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
+		'lualib-src/lualib.gyp:memory',
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'.'
       ],
-	  #目标工程源代码路径
       'sources': [
 		"../service-src/service_harbor2.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"../service-src/harbor2.def",
@@ -228,19 +215,16 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'gate',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
+		'lualib-src/lualib.gyp:memory',
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'.'
       ],
-	  #目标工程源代码路径
       'sources': [
 		"../service-src/service_gate.c",
 		"../service-src/hashid.h",
@@ -249,7 +233,7 @@
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"../service-src/gate.def",
@@ -265,58 +249,23 @@
       ],
     },
 	{
-	  # 目标工程名
-      'target_name': 'memory',
-      'type': 'loadable_module',
-	  # 目标工程依赖工程
-      'dependencies': [
-		'3rd/3rd.gyp:lua',
-		'skynet',
-      ],
-	  #目标工程C++ include目录
-      'include_dirs': [
-		'.'
-      ],
-	  #目标工程源代码路径
-      'sources': [
-		"../lualib-src/lua-memory.c",
-	  ],
-	  'conditions': [
-        ['OS=="win"', {
-          'defines': [
-            'NOUSE_JEMALLOC',
-          ],
-		  'sources': [
-			"../lualib-src/memory.def",
-		  ],
-        }, { # OS != "win",
-          'defines': [
-            
-          ],
-        }]
-      ],
-    },
-	{
-	  # 目标工程名
       'target_name': 'socketdriver',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'3rd/3rd.gyp:lua',
 		'skynet',
+		'lualib-src/lualib.gyp:memory',
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'.'
       ],
-	  #目标工程源代码路径
       'sources': [
 		"../lualib-src/lua-socket.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"../lualib-src/socketdriver.def",

@@ -59,7 +59,6 @@
 		'logger',
 		'harbor',
 		'harbor2',
-		'memory',
 		'socketdriver',
       ],
 	  #目标工程预处理宏定义
@@ -77,7 +76,7 @@
         ['OS=="win"', {
 		  'product_name':'skynet2',
           'defines': [
-            'NOUSE_JEMALLOC',
+
           ],
 		  'msvs_disabled_warnings': [
 			'4204','4013','4996','4152','4047','4024','4133'

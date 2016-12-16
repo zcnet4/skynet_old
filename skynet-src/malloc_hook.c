@@ -21,6 +21,16 @@ typedef struct _mem_data {
 
 static mem_data mem_stats[SLOT_SIZE];
 
+void (*skynet_error_fn)(struct skynet_context * context, const char *msg, ...);
+#define skynet_error (*skynet_error_fn)
+uint32_t(*skynet_current_handle_fn)(void);
+#define skynet_current_handle (*skynet_current_handle_fn)
+
+void skynet_memory_init(void* error_fn, void* handle_fn)
+{
+  skynet_error_fn = error_fn;
+  skynet_current_handle_fn = handle_fn;
+}
 
 #ifndef NOUSE_JEMALLOC
 
@@ -169,7 +179,18 @@ skynet_calloc(size_t nmemb,size_t size) {
 }
 
 #else
-
+void * skynet_malloc(size_t sz) {
+  return malloc(sz);
+}
+void * skynet_calloc(size_t nmemb, size_t size) {
+  return calloc(nmemb, size);
+}
+void * skynet_realloc(void *ptr, size_t size) {
+  return realloc(ptr, size);
+}
+void skynet_free(void *ptr) {
+  free(ptr);
+}
 // for skynet_lalloc use
 #define raw_realloc realloc
 #define raw_free free

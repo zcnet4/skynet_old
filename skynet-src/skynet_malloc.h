@@ -3,19 +3,20 @@
 
 #include <stddef.h>
 
-#define skynet_malloc malloc
-#define skynet_calloc calloc
-#define skynet_realloc realloc
-#define skynet_free free
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#ifndef NOUSE_JEMALLOC
+void skynet_memory_init(void* error_fn, void* handle_fn);
 void * skynet_malloc(size_t sz);
 void * skynet_calloc(size_t nmemb,size_t size);
 void * skynet_realloc(void *ptr, size_t size);
 void skynet_free(void *ptr);
-#endif
 char * skynet_strdup(const char *str);
 void * skynet_lalloc(void *ptr, size_t osize, size_t nsize);	// use for lua
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 #ifdef _MSC_VER

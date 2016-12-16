@@ -29,11 +29,7 @@
       #}],
     ],
 	'include_dirs': [
-		# 配置全局开发目录。
-		#'..',
-		#'../common',
     ],
-	#目标工程预处理宏定义
 	'defines': [
 		#'DEFINE_ZC_VALUE=ZC',
 		#'NOMINMAX',
@@ -41,28 +37,53 @@
   },
   'targets': [
 	{
-	  # 目标工程名
-      'target_name': 'bson',
-      'type': 'loadable_module',
-	  # 目标工程依赖工程
+      'target_name': 'memory',
+      'type': 'shared_library',
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
       ],
-	  #目标工程预处理宏定义
-      'defines': [
-      ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
-		"lua-bson.c",
+		"../skynet-src/skynet_malloc.h",
+		"../skynet-src/malloc_hook.h",
+		"../skynet-src/malloc_hook.c",
+		"lua-memory.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
             'NOUSE_JEMALLOC',
+          ],
+		  'sources': [
+			"memory.def",
+		  ],
+        }, { # OS != "win",
+          'defines': [
+            
+          ],
+        }]
+      ],
+    },
+	{
+      'target_name': 'bson',
+      'type': 'loadable_module',
+      'dependencies': [
+		'../3rd/3rd.gyp:lua',
+      ],
+      'defines': [
+      ],
+      'include_dirs': [
+		'../skynet-src',
+      ],
+       'sources': [
+		"lua-bson.c",
+	  ],
+	  'conditions': [
+        ['OS=="win"', {
+          'defines': [
+            
           ],
 		  'sources': [
 			"bson.def",
@@ -91,21 +112,16 @@
       ],
     },
 	{
-	  # 目标工程名
-      'target_name': 'crypt',
+	  'target_name': 'crypt',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-crypt.c",
 		"lsha1.c",
@@ -115,7 +131,7 @@
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"crypt.def",
@@ -134,28 +150,24 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'debugchannel',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
+	  
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-debugchannel.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"debugchannel.def",
@@ -174,28 +186,24 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'mongo',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
+		'memory',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-mongo.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"mongo.def",
@@ -214,28 +222,23 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'mysqlaux',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-mysqlaux.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"mysqlaux.def",
@@ -254,28 +257,24 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'netpack',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
+		'memory',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-netpack.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"netpack.def",
@@ -294,28 +293,23 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'profile',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-profile.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"profile.def",
@@ -334,28 +328,23 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'sharedata',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-sharedata.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"sharedata.def",
@@ -374,21 +363,16 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'sproto',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"sproto/lsproto.c",
 		"sproto/sproto.c",
@@ -397,7 +381,7 @@
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"sproto.def",
@@ -416,28 +400,24 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'stm',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
+		'memory',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-stm.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"stm.def",
@@ -456,28 +436,24 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'multicast',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
+		'memory',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-multicast.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
           'defines': [
-            'NOUSE_JEMALLOC',
+            
           ],
 		  'sources': [
 			"multicast.def",
