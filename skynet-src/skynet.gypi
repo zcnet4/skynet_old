@@ -106,7 +106,6 @@
 	  # 目标工程依赖工程
       'dependencies': [
 		'3rd/3rd.gyp:lua',
-		'3rd/3rd.gyp:tar',
 		'skynet',
       ],
 	  #目标工程C++ include目录
