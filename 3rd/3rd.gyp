@@ -36,6 +36,8 @@
 		#'DEFINE_ZC_VALUE=ZC',
 		#'NOMINMAX',
 	],
+	#去掉lib前缀。
+	'product_prefix': '',
   },
   'includes': [
 	'posix_win/posix.gypi',

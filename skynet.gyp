@@ -38,6 +38,8 @@
 		#'DEFINE_ZC_VALUE=ZC',
 		#'NOMINMAX',
 	],
+	#È¥µôlibÇ°×º¡£
+	'product_prefix': '',
   },
   'includes': [
 	'skynet-src/skynet.gypi',
