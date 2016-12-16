@@ -53,18 +53,15 @@
 	  ],
 	  'conditions': [
         ['OS=="win"', {
-          'defines': [
-            'NOUSE_JEMALLOC',
-          ],
+          'defines': [ 'NOUSE_JEMALLOC',],
 		  'sources': [
 			"memory.def",
 		  ],
         }, { # OS != "win",
-          'include_dirs': [
-			"../3rd/jemalloc/include/jemalloc",
-		   ],
-		   'library_dirs': ["../3rd/jemalloc/lib/linux",],
-		   'libraries': [ '-llibjemalloc',],
+		  'defines': [ 'NOUSE_JEMALLOC',],
+          #'include_dirs': [ "../3rd/jemalloc/include/jemalloc",],
+		  #'library_dirs': ["../3rd/jemalloc/lib/linux",],
+		  #'libraries': [ '-llibjemalloc',],
         }]
       ],
     },
