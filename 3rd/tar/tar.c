@@ -1,5 +1,5 @@
 #include "tar.h"
-#include <io.h>
+//#include <io.h>
 #include "unistd.h"
 
 #define	S_ISUID	0004000			/* set user id on execution */
