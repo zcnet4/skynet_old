@@ -4,23 +4,19 @@
 	{
       'target_name': 'tar',
       'type': 'static_library',
-      'dependencies': [
-		'posix_win',
-      ],
-      'defines': [
-      ],
-      'include_dirs': [
-		'../posix_win',
-      ],
       'sources': [
 		"tar.c",
 		"tar.h",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
-		  'sources': [
-			
+		  'dependencies': [
+			'posix_win',
 		  ],
+		  'defines': [],
+		  'include_dirs': [
+		   '../posix_win',
+          ],
         }, { # OS != "win",
           'defines': [
             
@@ -32,23 +28,20 @@
       'target_name': 'tar_bin',
       'type': 'executable',
       'dependencies': [
-		'posix_win',
 		'tar',
       ],
       'defines': [
       ],
       'include_dirs': [
 		'tar',
-		'../posix_win',
       ],
       'sources': [
 		"main.c",
 	  ],
 	  'conditions': [
         ['OS=="win"', {
-		  'sources': [
-			
-		  ],
+		  'dependencies': [ 'posix_win',],
+		  'include_dirs': [ '../posix_win',],
 		  # Add the default import libs.
         'msvs_settings':{
           'VCLinkerTool': {
