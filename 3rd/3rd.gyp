@@ -28,11 +28,9 @@
       #}],
     ],
 	'include_dirs': [
-		# 配置全局开发目录。
 		#'..',
 		#'../common',
     ],
-	#目标工程预处理宏定义
 	'defines': [
 		#'DEFINE_ZC_VALUE=ZC',
 		#'NOMINMAX',
@@ -45,15 +43,12 @@
   ],
   'targets': [
     {
-	  # 目标工程名
       'target_name': 'lua',
       'type': 'shared_library',
 	  'product_name':'lua53',
-	  #目标工程C++ include目录
       'include_dirs': [
 		'../skynet-src',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua/lapi.c",
 		"lua/lapi.h",
@@ -124,14 +119,12 @@
       },
 	  'conditions': [
         ['OS=="win"', {
-			#目标工程预处理宏定义
 			'defines': [
 				'LUA_BUILD_AS_DLL',
 			],
 			'include_dirs': [
 				'posix_win',
 			],
-			# 目标工程依赖工程
 			'dependencies': [
 				'posix_win',
 			],
@@ -150,25 +143,22 @@
 			'-lm',
 		  ],
 		  'scons_variable_settings': {'SHLIBPREFIX':'lib',},
-        }]
-      ],
+		  'cflags_cc': [ '-std=gnu99' ],
+        }
+		]
+    ],
     },
 	{
-	  # 目标工程名
       'target_name': 'md5',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'lua',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'lua',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-md5/compat-5.2.c",
 		"lua-md5/md5.c",
@@ -189,21 +179,16 @@
       ],
     },
 	{
-	  # 目标工程名
       'target_name': 'lpeg',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'lua',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'lua',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lpeg/lpeg.def",
 		"lpeg/lpvm.c",
@@ -214,21 +199,16 @@
 	  ],
     },
 	{
-	  # 目标工程名
       'target_name': 'cjson',
       'type': 'loadable_module',
-	  # 目标工程依赖工程
       'dependencies': [
 		'lua',
       ],
-	  #目标工程预处理宏定义
       'defines': [
       ],
-	  #目标工程C++ include目录
       'include_dirs': [
 		'lua',
       ],
-	  #目标工程源代码路径
       'sources': [
 		"lua-cjson/fpconv.c",
 		"lua-cjson/lua_cjson.c",
