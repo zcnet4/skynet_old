@@ -61,7 +61,7 @@
 		  ],
         }, { # OS != "win",
           'include_dirs': [
-			"../3rd/jemalloc/include"
+			"../3rd/jemalloc/include/jemalloc"
 		   ],
         }]
       ],
