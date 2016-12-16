@@ -9,6 +9,7 @@
 {
   'variables': {
     'chromium_code': 1,  # Use higher warning level.
+    'c99':1,
   },
   'target_defaults': {
     'conditions': [
