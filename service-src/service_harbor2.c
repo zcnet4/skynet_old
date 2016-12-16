@@ -538,7 +538,7 @@ static void harbor_socket_connected(struct harbor* h, int connect_fd, const char
   static const char* connect_reason[] = {
     "start", "binding", "transfer",
   };
-  for (int i = 0; i < _countof(connect_reason); ++i) {
+  for (int i = 0; i < sizeof(connect_reason) / sizeof(connect_reason[0]); ++i) {
     if (!strncmp(buf, connect_reason[i], buf_size)) {
       return;
     }
