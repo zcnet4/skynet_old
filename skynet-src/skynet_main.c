@@ -73,17 +73,24 @@ _init_env(lua_State *L) {
 				fprintf(stderr, "Invalid config table key = %s\n", key);
 				exit(1);
 			}
-#ifdef _MSC_VER
+#if 1
+      // 将Debug与Release目录统一起来，方便conf配置。by ZC. 2016-9-22
       if (!strcmp(key, "cpath") || !strcmp(key, "lua_cpath")) {
         const char* p = value;
-#ifdef _DEBUG
-        // 将Window版本下Debug与Release目录统一起来，方便conf配置。by ZC. 2016-9-22
         const char* src = "Release/?.so";
+#ifdef _MSC_VER
+#ifdef _DEBUG
         const char* dst = "Debug/?.dll";
 #else
-        const char* src = "?.so";
-        const char* dst = "?.dll";
+        const char* dst = "Release/?.dll";
 #endif // _DEBUG
+#else
+#ifdef _DEBUG
+        const char* dst = "out/Debug/?.so";
+#else
+        const char* dst = "out/Release/?.so";
+#endif // _DEBUG
+#endif // _MSC_VER
         //
         int src_len = strlen(src);
         int dst_len = strlen(dst);
