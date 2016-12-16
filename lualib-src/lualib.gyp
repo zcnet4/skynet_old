@@ -61,8 +61,10 @@
 		  ],
         }, { # OS != "win",
           'include_dirs': [
-			"../3rd/jemalloc/include/jemalloc"
+			"../3rd/jemalloc/include/jemalloc",
 		   ],
+		   'library_dirs': ["../3rd/jemalloc/lib/linux",],
+		   'libraries': [ '-llibjemalloc',],
         }]
       ],
     },
