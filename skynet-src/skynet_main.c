@@ -77,18 +77,18 @@ _init_env(lua_State *L) {
       // 将Debug与Release目录统一起来，方便conf配置。by ZC. 2016-9-22
       if (!strcmp(key, "cpath") || !strcmp(key, "lua_cpath")) {
         const char* p = value;
-        const char* src = "Release/?.so";
+        const char* src = "build/Release/?.so";
 #ifdef _MSC_VER
 #ifdef _DEBUG
-        const char* dst = "Debug/?.dll";
+        const char* dst = "build/Debug/?.dll";
 #else
-        const char* dst = "Release/?.dll";
+        const char* dst = "build/Release/?.dll";
 #endif // _DEBUG
 #else
 #ifdef _DEBUG
-        const char* dst = "out/Debug/?.so";
+        const char* dst = "build_linux/Debug/?.so";
 #else
-        const char* dst = "out/Release/?.so";
+        const char* dst = "build_linux/Release/?.so";
 #endif // _DEBUG
 #endif // _MSC_VER
         //
