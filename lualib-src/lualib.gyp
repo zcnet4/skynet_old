@@ -1,14 +1,5 @@
-# Copyright (c) 2012 The Chromium Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
-
-# This is the "public" ppapi.gyp file, which must have dependencies on the
-# redistributable portions of PPAPI only. This prevents circular dependencies
-# in the .gyp files (since ppapi_internal depends on parts of Chrome).
-
 {
   'variables': {
-    'chromium_code': 1,  # Use higher warning level.
     'c99':1,
   },
   'target_defaults': {
@@ -43,6 +34,7 @@
       'type': 'shared_library',
       'dependencies': [
 		'../3rd/3rd.gyp:lua',
+		'../3rd/jemalloc/jemalloc.gyp:jemalloc',
       ],
       'include_dirs': [
 		'../skynet-src',
@@ -60,10 +52,10 @@
 			"memory.def",
 		  ],
         }, { # OS != "win",
-		  'defines': [ 'NOUSE_JEMALLOC',],
-          #'include_dirs': [ "../3rd/jemalloc/include/jemalloc",],
-		  #'library_dirs': ["../3rd/jemalloc/lib/linux",],
-		  #'libraries': [ '-llibjemalloc',],
+		  #'defines': [ 'NOUSE_JEMALLOC',],
+          'include_dirs': [ "../3rd/jemalloc/include/jemalloc",],
+		  'library_dirs': ["../3rd/jemalloc/lib/linux",],
+		  'libraries': [ '-ljemalloc',],
         }]
       ],
     },
