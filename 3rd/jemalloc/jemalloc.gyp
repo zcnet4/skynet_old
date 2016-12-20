@@ -10,6 +10,8 @@
 		  'actions': [
 		  {
             'action_name': 'generate header',
+			 'inputs': [],
+             'outputs': [''],
             'action': ['./build.sh'],
 		    'message': 'Generating manpage'
           },
