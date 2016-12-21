@@ -45,7 +45,7 @@
         }, { # OS != "win",
 		  #'defines': [ 'NOUSE_JEMALLOC',],
           'include_dirs': [ "../3rd/jemalloc/include/jemalloc",],
-		  'library_dirs': ['../skynet/3rd/jemalloc/lib',],
+		  'library_dirs': ['<(DEPTH)/skynet/3rd/jemalloc/lib',],
 		  #libjemalloc_pic.a¾²Ì¬¿â
 		  'libraries': [ '-ljemalloc_pic',],
         }]
