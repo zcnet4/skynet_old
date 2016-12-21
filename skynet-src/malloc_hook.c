@@ -6,8 +6,16 @@
 #include <stdio.h>
 
 #include "malloc_hook.h"
-#include "skynet.h"
+//
 #include "atomic.h"
+#if 1
+void(*skynet_error_fn)(struct skynet_context * context, const char *msg, ...);
+#define skynet_error (*skynet_error_fn)
+uint32_t(*skynet_current_handle_fn)(void);
+#define skynet_current_handle (*skynet_current_handle_fn)
+#else
+#include "skynet.h"
+#endif
 
 static size_t _used_memory = 0;
 static size_t _memory_block = 0;
@@ -21,13 +29,7 @@ typedef struct _mem_data {
 
 static mem_data mem_stats[SLOT_SIZE];
 
-void (*skynet_error_fn)(struct skynet_context * context, const char *msg, ...);
-#define skynet_error (*skynet_error_fn)
-uint32_t(*skynet_current_handle_fn)(void);
-#define skynet_current_handle (*skynet_current_handle_fn)
-
-void skynet_memory_init(void* error_fn, void* handle_fn)
-{
+void skynet_memory_init(void* error_fn, void* handle_fn) {
   skynet_error_fn = error_fn;
   skynet_current_handle_fn = handle_fn;
 }
