@@ -76,7 +76,7 @@ void _skynet_proto_pack_header(uint8_t** buf, int* buf_size, uint16_t cmd, uint3
   *buf_size -= sizeof(uint32_t);
 }
 
-void _skynet_proto_unpack_header(uint8_t** buf, int* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid) {
+void _skynet_proto_unpack_header(const uint8_t** buf, int* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid) {
   //[len][cmd][session][uid][content]:包长度 + 命令 + 会话 + uid + 内容。
   //sizeof(uint16_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint32_t)
   *cmd = ntohs(*((uint16_t*)*buf));
@@ -233,14 +233,14 @@ int skynet_proto_unpack(lua_State *L) {
   if (lua_isnoneornil(L, 1)) {
     return 0;
   }
-  const unsigned char * buf;
+  const uint8_t* buf;
   int buf_size;
   if (lua_type(L, 1) == LUA_TSTRING) {
     size_t sz;
-    buf = (const unsigned char *)lua_tolstring(L, 1, &sz);
+    buf = (const uint8_t*)lua_tolstring(L, 1, &sz);
     buf_size = (int)sz;
   } else {
-    buf = (const unsigned char *)lua_touserdata(L, 1);
+    buf = (const uint8_t*)lua_touserdata(L, 1);
     buf_size = luaL_checkinteger(L, 2);
   }
   if (buf == NULL) {
