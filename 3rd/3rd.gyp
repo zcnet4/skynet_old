@@ -4,18 +4,9 @@
   },
   'target_defaults': {
     'conditions': [
-      # Linux shared libraries should always be built -fPIC.
-      #
-      # TODO(ajwong): For internal pepper plugins, which are statically linked
-      # into chrome, do we want to build w/o -fPIC?  If so, how can we express
-      # that in the build system?
       ['OS in "freebsd dragonflybsd linux openbsd solaris android"', {
-        'cflags': ['-fPIC', '-fvisibility=default'],
-
-        # This is needed to make the Linux shlib build happy. Without this,
-        # -fvisibility=hidden gets stripped by the exclusion in common.gypi
-        # that is triggered when a shared library build is specified.
-        'cflags/': [['include', '^-fvisibility=default$']],
+        'cflags!': ['-fvisibility=hidden'],
+		'cflags_cc!': ['-fvisibility-inlines-hidden'],
 	  #	'scons_variable_settings': {'SHLIBPREFIX':'',},
       }],
     ],
