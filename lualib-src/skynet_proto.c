@@ -207,14 +207,14 @@ int skynet_proto_pack2(lua_State* L) {
     uid = luaL_checkinteger(L, 3);
   //
   size_t sz = 0;
-  char* str = NULL;
+  const char* str = NULL;
   if (!lua_isnoneornil(L, 4))
     str = luaL_checklstring(L, 4, &sz);
   //
-  uint16_t proto_buf_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sz;
+  int proto_buf_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sz;
   uint8_t* proto_buf = skynet_malloc(proto_buf_size);
   //
-  uint16_t buf_size = proto_buf_size - sizeof(uint16_t);
+  int buf_size = proto_buf_size - sizeof(uint16_t);
   uint8_t* buf = proto_buf + sizeof(uint16_t);
   //[len]
   *((uint16_t*)proto_buf) = htons(buf_size);
@@ -273,14 +273,14 @@ int skynet_proto_unpack2(lua_State *L) {
   if (lua_isnoneornil(L, 1)) {
     return 0;
   }
-  const unsigned char * buf;
+  const uint8_t* buf;
   int buf_size;
   if (lua_type(L, 1) == LUA_TSTRING) {
     size_t sz;
-    buf = (const unsigned char *)lua_tolstring(L, 1, &sz);
+    buf = (const uint8_t*)lua_tolstring(L, 1, &sz);
     buf_size = (int)sz;
   } else {
-    buf = (const unsigned char *)lua_touserdata(L, 1);
+    buf = (const uint8_t*)lua_touserdata(L, 1);
     buf_size = luaL_checkinteger(L, 2);
   }
   if (buf == NULL) {
@@ -299,14 +299,14 @@ int skynet_proto_unpack2(lua_State *L) {
   lua_pushinteger(L, session);
   lua_pushinteger(L, uid);
   if (buf_size > 0) {
-    lua_pushlstring(L, buf, buf_size);
+    lua_pushlstring(L, (const char*)buf, buf_size);
   }
   //
   return lua_gettop(L) - 1;
 }
 
-static unsigned char auth_key[] = "fe3f88fa709e949f6455f335cce141b75f";
-#define _RANDOM_SIZE 8
+//static unsigned char auth_key[] = "fe3f88fa709e949f6455f335cce141b75f";
+//#define _RANDOM_SIZE 8
 
 //unsigned char* _skynet_proto_gen_auth(lua_State* L, int* auth_size) {
 //  int top = lua_gettop(L);
