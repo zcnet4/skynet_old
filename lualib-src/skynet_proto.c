@@ -53,7 +53,7 @@ void rc4_crypt(unsigned char*s, unsigned char*Data, unsigned long Len) {
 
 static unsigned char crypt_box[KEY_SIZE] = { 0 };
 static unsigned char key[] = "loveMMbyZC 2016-04-15 11:41";
-void proto_crypt(unsigned char* buf, uint32_t buf_size) {
+void proto_crypt(uint8_t* buf, uint32_t buf_size) {
   if (!crypt_box[0]) {
     rc4_init(crypt_box, key, sizeof(key));
   }
@@ -62,7 +62,7 @@ void proto_crypt(unsigned char* buf, uint32_t buf_size) {
   rc4_crypt(sbox, buf, buf_size);
 }
 
-void _skynet_proto_pack_header(const uint8_t** buf, uint16_t* buf_size, uint16_t cmd, uint32_t session, uint32_t uid) {
+void _skynet_proto_pack_header(uint8_t** buf, uint16_t* buf_size, uint16_t cmd, uint32_t session, uint32_t uid) {
   *((uint16_t*)*buf) = htons(cmd);
   *buf += sizeof(uint16_t);
   *buf_size -= sizeof(uint16_t);
@@ -76,7 +76,7 @@ void _skynet_proto_pack_header(const uint8_t** buf, uint16_t* buf_size, uint16_t
   *buf_size -= sizeof(uint32_t);
 }
 
-void _skynet_proto_unpack_header(const uint8_t** buf, uint16_t* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid) {
+void _skynet_proto_unpack_header(uint8_t** buf, uint16_t* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid) {
   //[len][cmd][session][uid][content]:包长度 + 命令 + 会话 + uid + 内容。
   //sizeof(uint16_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint32_t)
   *cmd = ntohs(*((uint16_t*)*buf));
@@ -106,14 +106,14 @@ static int _luaseri_pack_impl_protected(lua_State *L) {
   return lua_gettop(L);                 //返回所有栈。
 }
 
-unsigned char* _skynet_proto_content_offset(unsigned char* proto_buf, int proto_buf_size, int* proto_content_size) {
+uint8_t* _skynet_proto_content_offset(unsigned char* proto_buf, int proto_buf_size, int* proto_content_size) {
   *proto_content_size = proto_buf_size - (sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t));
   return (unsigned char*)proto_buf + (sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t));;
 }
 
-unsigned char* _skynet_proto_pack_content(lua_State* L, int from, int to, int* buf_size) {
-  int proto_buf_size;
-  unsigned char* proto_buf;
+uint8_t* _skynet_proto_pack_content(lua_State* L, int from, int to, uint8_t* buf_size) {
+  uint8_t proto_buf_size;
+  uint8_t* proto_buf;
   int top = lua_gettop(L);
   //http://blog.codingnow.com/2015/05/lua_c_api.html
   // 为保护_luaseri_pack_impl、减少栈间值复制与保持原来栈不变。
@@ -127,7 +127,7 @@ unsigned char* _skynet_proto_pack_content(lua_State* L, int from, int to, int* b
     proto_buf = lua_touserdata(L, -2);
     // 只加密内容。
     int en_buf_size = 0;
-    unsigned char* en_buf = _skynet_proto_content_offset(proto_buf, proto_buf_size, &en_buf_size);
+    uint8_t* en_buf = _skynet_proto_content_offset(proto_buf, proto_buf_size, &en_buf_size);
     proto_crypt(en_buf, en_buf_size);
   } else {
     proto_buf_size = 2 + 2 + 4 + 4;
@@ -181,10 +181,10 @@ int skynet_proto_pack(lua_State* L) {
     uid = luaL_checkinteger(L, 3);
   //
   int proto_buf_size = 0;
-  unsigned char* proto_buf = _skynet_proto_pack_content(L, 3, lua_gettop(L), &proto_buf_size);
+  uint8_t* proto_buf = _skynet_proto_pack_content(L, 3, lua_gettop(L), &proto_buf_size);
 	//
-  int buf_size = proto_buf_size - sizeof(uint16_t);
-  unsigned char* buf = proto_buf + sizeof(uint16_t);
+  uint16_t buf_size = proto_buf_size - sizeof(uint16_t);
+  uint8_t* buf = proto_buf + sizeof(uint16_t);
   //[len]
   *((uint16_t*)proto_buf) = htons(buf_size);
   //[cmd][session][uid][content]
@@ -211,11 +211,11 @@ int skynet_proto_pack2(lua_State* L) {
   if (!lua_isnoneornil(L, 4))
     str = luaL_checklstring(L, 4, &sz);
   //
-  int proto_buf_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sz;
-  unsigned char* proto_buf = skynet_malloc(proto_buf_size);
+  uint16_t proto_buf_size = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) + sz;
+  uint8_t* proto_buf = skynet_malloc(proto_buf_size);
   //
-  int buf_size = proto_buf_size - sizeof(uint16_t);
-  unsigned char* buf = proto_buf + sizeof(uint16_t);
+  uint16_t buf_size = proto_buf_size - sizeof(uint16_t);
+  uint8_t* buf = proto_buf + sizeof(uint16_t);
   //[len]
   *((uint16_t*)proto_buf) = htons(buf_size);
   //[cmd][session][uid][content]
