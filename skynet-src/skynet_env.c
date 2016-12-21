@@ -46,6 +46,10 @@ skynet_setenv(const char *key, const char *value) {
 
 void
 skynet_env_init() {
+  //Modify Begin
+  //by ZC. 2016-12-16 15:37.
+  skynet_memory_init(skynet_error, skynet_current_handle);
+  //Modify End
 	E = skynet_malloc(sizeof(*E));
 	SPIN_INIT(E)
 	E->L = luaL_newstate();
