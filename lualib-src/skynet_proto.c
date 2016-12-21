@@ -62,7 +62,7 @@ void proto_crypt(uint8_t* buf, uint32_t buf_size) {
   rc4_crypt(sbox, buf, buf_size);
 }
 
-void _skynet_proto_pack_header(uint8_t** buf, uint16_t* buf_size, uint16_t cmd, uint32_t session, uint32_t uid) {
+void _skynet_proto_pack_header(uint8_t** buf, int* buf_size, uint16_t cmd, uint32_t session, uint32_t uid) {
   *((uint16_t*)*buf) = htons(cmd);
   *buf += sizeof(uint16_t);
   *buf_size -= sizeof(uint16_t);
@@ -76,7 +76,7 @@ void _skynet_proto_pack_header(uint8_t** buf, uint16_t* buf_size, uint16_t cmd, 
   *buf_size -= sizeof(uint32_t);
 }
 
-void _skynet_proto_unpack_header(uint8_t** buf, uint16_t* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid) {
+void _skynet_proto_unpack_header(uint8_t** buf, int* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid) {
   //[len][cmd][session][uid][content]:包长度 + 命令 + 会话 + uid + 内容。
   //sizeof(uint16_t), sizeof(uint16_t), sizeof(uint32_t), sizeof(uint32_t)
   *cmd = ntohs(*((uint16_t*)*buf));
@@ -111,8 +111,8 @@ uint8_t* _skynet_proto_content_offset(unsigned char* proto_buf, int proto_buf_si
   return (unsigned char*)proto_buf + (sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t));;
 }
 
-uint8_t* _skynet_proto_pack_content(lua_State* L, int from, int to, uint8_t* buf_size) {
-  uint8_t proto_buf_size;
+uint8_t* _skynet_proto_pack_content(lua_State* L, int from, int to, int* buf_size) {
+  int proto_buf_size;
   uint8_t* proto_buf;
   int top = lua_gettop(L);
   //http://blog.codingnow.com/2015/05/lua_c_api.html
@@ -183,7 +183,7 @@ int skynet_proto_pack(lua_State* L) {
   int proto_buf_size = 0;
   uint8_t* proto_buf = _skynet_proto_pack_content(L, 3, lua_gettop(L), &proto_buf_size);
 	//
-  uint16_t buf_size = proto_buf_size - sizeof(uint16_t);
+  int buf_size = proto_buf_size - sizeof(uint16_t);
   uint8_t* buf = proto_buf + sizeof(uint16_t);
   //[len]
   *((uint16_t*)proto_buf) = htons(buf_size);

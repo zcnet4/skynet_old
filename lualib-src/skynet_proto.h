@@ -19,11 +19,11 @@ int skynet_proto_pack2(lua_State* L);
 int skynet_proto_unpack(lua_State *L);
 int skynet_proto_unpack2(lua_State *L);
 
-void _skynet_proto_pack_header(uint8_t** buf, uint16_t* buf_size, uint16_t cmd, uint32_t session, uint32_t uid);
-void _skynet_proto_unpack_header(uint8_t** buf, uint16_t* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid);
+void _skynet_proto_pack_header(uint8_t** buf, int* buf_size, uint16_t cmd, uint32_t session, uint32_t uid);
+void _skynet_proto_unpack_header(uint8_t** buf, int* buf_size, uint16_t* cmd, uint32_t* session, uint32_t* uid);
 
 // return proto_buf
-uint8_t* _skynet_proto_pack_content(lua_State* L, int from, int to, uint8_t* buf_size);
+uint8_t* _skynet_proto_pack_content(lua_State* L, int from, int to, int* buf_size);
 int _skynet_proto_unpack_content(lua_State* L, const unsigned char* buf, int buf_size);
 
 uint8_t* _skynet_proto_content_offset(unsigned char* proto_buf, int proto_buf_size, int* proto_content_size);
