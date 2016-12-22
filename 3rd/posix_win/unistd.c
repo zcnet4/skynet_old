@@ -54,11 +54,11 @@ void sleep(size_t ms) {
 }
 
 
-void systime_now(struct timespec *ti) {
+void tick_now(struct timespec *ti) {
   LONGLONG ticks_per_second = get_ticks_per_second();
   if (ticks_per_second > 0) {
     LARGE_INTEGER now;
-    QueryPerformanceCounter(&now);
+    QueryPerformanceCounter(&now);  // 返回windows启动的tick时间
     LONGLONG qpc_value = now.QuadPart;
     // Intentionally calculate microseconds in a round about manner to avoid
     // overflow and precision issues. Think twice before simplifying!
@@ -76,17 +76,17 @@ int clock_gettime(int what, struct timespec *ti) {
 	switch(what) {
   case CLOCK_REALTIME: {
     //CLOCK_REALTIME:系统实时时间,随系统实时时间改变而改变,即从UTC1970-1-1 0:0:0开始计时。
-    systime_now(ti);
+    tick_now(ti);
     return 0;
   }
   case CLOCK_MONOTONIC: {
     //CLOCK_MONOTONIC:从系统启动这一刻起开始计时, 不受系统时间被用户改变的影响。
-    systime_now(ti);
+    tick_now(ti);
     return 0;
   }
   case CLOCK_THREAD_CPUTIME_ID: {
     // CLOCK_THREAD_CPUTIME_ID:本线程到当前代码系统CPU花费的时间
-    systime_now(ti);
+    tick_now(ti);
     return 0;
   }
 	default:
