@@ -593,7 +593,7 @@ static bool harbor_control_message(struct harbor* h, uint32_t source, const char
 		char server_handle[32] = { 0 };
 		p = _read_string(p, (uint8_t*)server_handle, NULL);
     //
-    uint32_t destination = atoi(server_handle);
+    uint32_t destination = strtoul(server_handle, NULL, 10);
     uint16_t server_harbor_id = destination >> HANDLE_REMOTE_SHIFT;
     //不允许将远程harbor_id注册为本地harbor_id。
     if (server_harbor_id != h->local_harbor_id) return false;
