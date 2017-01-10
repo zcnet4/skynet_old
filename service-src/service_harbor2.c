@@ -861,12 +861,18 @@ int harbor2_init(struct harbor* h, struct skynet_context* ctx, char* parm) {
     skynet_error(h->ctx, "harbor2[%u]:harbor_host environment variable size > %d", h->local_harbor_id, HARBOR_ADDRESS_SIZE);
     return -1;
   }
+  // ¹æ¶¨harbor_hub_idÎª255¡£by ZC. 2017-1-10 13:48.
+  if (h->harbor_hub && 0 == strcmp(h->harbor_hub, h->local_harbor_host) && h->local_harbor_id != REMOTE_MAX - 1) {
+    skynet_error(h->ctx, "harbor2[%u]:The harbor_hub_id must be 255", h->local_harbor_id);
+    return -1;
+  }
   //
   harbor_start(h);
   //
   if (h->harbor_hub && strcmp(h->harbor_hub, h->local_harbor_host)) {
-    harbor_connect(h, 1, h->harbor_hub);
+    harbor_connect(h, REMOTE_MAX - 1, h->harbor_hub);
   }
+  //
   return 0;
 }
 // -------------------------------------------------------------------------

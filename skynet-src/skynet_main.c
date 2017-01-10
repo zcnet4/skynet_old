@@ -177,7 +177,7 @@ main(int argc, char *argv[]) {
 
 	config.thread =  optint("thread",8);
 	config.module_path = optstring("cpath","./cservice/?.so");
-	config.harbor = optint("harbor", 1);
+	config.harbor = optint("harbor", 0);
 	config.bootstrap = optstring("bootstrap","snlua bootstrap");
 	config.daemon = optstring("daemon", NULL);
 	config.logger = optstring("logger", NULL);
