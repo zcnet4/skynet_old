@@ -133,7 +133,9 @@ static const char * load_config = "\
 	code = string.gsub(code, \'%$([%w_%d]+)\', getenv)\
 	f:close()\
 	local result = {}\
+  function result.include(name) assert(loadfile(name, \"t\", result))() end  \
 	assert(load(code,\'=(load)\',\'t\',result))()\
+  result.include = nil\
 	return result\
 ";
 
