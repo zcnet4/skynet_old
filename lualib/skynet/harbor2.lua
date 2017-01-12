@@ -23,6 +23,12 @@ function harbor.globalname(name, handle)
 	skynet.send(".harbor", "harbor", "REGISTER", name, handle)
 end
 
+function harbor.register(name, handle)
+	handle = handle or skynet.self()
+	assert(#name <= 32)
+	skynet.send(".harbor", "harbor", "REGISTER", name, handle)
+end
+
 function harbor.queryname(name)
 	assert(#name <= 32)
 	return skynet.call(".harbor", "harbor", "QUERYNAME", name)
