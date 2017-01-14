@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------------------
-//	FileName		£º	D:\yy_code\strife\trunk\src\skynet\3rd\posix_win\sys\socket.h
+//	FileName		£º	D:\yx_code\yx\skynet\3rd\posix_win\sys\socket.h
 //	Creator			£º	(zc) <zcnet4@gmail.com>
 //	CreateTime	£º	2016-3-23 14:04
 //	Description	£º	

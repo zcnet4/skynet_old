@@ -1,5 +1,5 @@
 ﻿/* -------------------------------------------------------------------------
-//	FileName		：	D:\yy_code\strife\trunk\src\ChatServer\src\skynet_proto.c
+//	FileName		：	D:\yx_code\yx\skynet\lualib-src\skynet_proto.c
 //	Creator			：	(zc) <zcnet4@gmail.com>
 //	CreateTime	：	2016-4-8 14:10
 //	Description	：	
